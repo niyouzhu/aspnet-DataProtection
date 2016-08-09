@@ -16,12 +16,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     {
         private readonly ILogger _log;
 
-        public ManagedAuthenticatedEncryptorDescriptor(ManagedAuthenticatedEncryptionSettings settings, ISecret masterKey)
-            : this(settings, masterKey, services: null)
-        {
-        }
-
-        public ManagedAuthenticatedEncryptorDescriptor(ManagedAuthenticatedEncryptionSettings settings, ISecret masterKey, IServiceProvider services)
+        public ManagedAuthenticatedEncryptorDescriptor(ManagedAuthenticatedEncryptionSettings settings, ISecret masterKey, ILoggerFactory loggerFactory)
         {
             if (settings == null)
             {
@@ -35,7 +30,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
             Settings = settings;
             MasterKey = masterKey;
-            _log = services.GetLogger<ManagedAuthenticatedEncryptorDescriptor>();
+            _log = loggerFactory.CreateLogger<ManagedAuthenticatedEncryptorDescriptor>();
         }
 
         internal ISecret MasterKey { get; }

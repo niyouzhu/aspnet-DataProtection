@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
         public void Validate()
         {
             // Run a sample payload through an encrypt -> decrypt operation to make sure data round-trips properly.
-            var encryptor = CreateAuthenticatedEncryptorInstance(Secret.Random(512 / 8));
+            var encryptor = CreateAuthenticatedEncryptorInstance(Secret.Random(512 / 8), NullLoggerFactory.Instance);
             try
             {
                 encryptor.PerformSelfTest();
@@ -55,10 +55,10 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
          * HELPER ROUTINES
          */
 
-        internal IAuthenticatedEncryptor CreateAuthenticatedEncryptorInstance(ISecret secret, IServiceProvider services = null)
+        internal IAuthenticatedEncryptor CreateAuthenticatedEncryptorInstance(ISecret secret, ILoggerFactory loggerFactory)
         {
             return CreateImplementationOptions()
-                .ToConfiguration(services)
+                .ToConfiguration(loggerFactory)
                 .CreateDescriptorFromSecret(secret)
                 .CreateEncryptorInstance();
         }
@@ -193,9 +193,9 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
             return (EncryptionAlgorithm.AES_128_GCM <= algorithm && algorithm <= EncryptionAlgorithm.AES_256_GCM);
         }
 
-        IInternalAuthenticatedEncryptorConfiguration IInternalAuthenticatedEncryptionSettings.ToConfiguration(IServiceProvider services)
+        IInternalAuthenticatedEncryptorConfiguration IInternalAuthenticatedEncryptionSettings.ToConfiguration(ILoggerFactory loggerFactory)
         {
-            return new AuthenticatedEncryptorConfiguration(this, services);
+            return new AuthenticatedEncryptorConfiguration(this, loggerFactory);
         }
     }
 }

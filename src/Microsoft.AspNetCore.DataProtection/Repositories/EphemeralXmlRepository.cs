@@ -17,9 +17,9 @@ namespace Microsoft.AspNetCore.DataProtection.Repositories
     {
         private readonly List<XElement> _storedElements = new List<XElement>();
 
-        public EphemeralXmlRepository(IServiceProvider services)
+        public EphemeralXmlRepository(ILoggerFactory loggerFactory)
         {
-            var logger = services?.GetLogger<EphemeralXmlRepository>();
+            var logger = loggerFactory.CreateLogger<EphemeralXmlRepository>();
             logger?.UsingInmemoryRepository();
         }
 

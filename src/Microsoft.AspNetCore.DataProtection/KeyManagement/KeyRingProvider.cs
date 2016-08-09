@@ -22,14 +22,18 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
         private readonly IKeyManager _keyManager;
         private readonly ILogger _logger;
 
-        public KeyRingProvider(IKeyManager keyManager, KeyManagementOptions keyManagementOptions, IServiceProvider services)
+        public KeyRingProvider(
+            IKeyManager keyManager,
+            KeyManagementOptions kmOptions,
+            ICacheableKeyRingProvider cacheableKeyRingProvider,
+            IDefaultKeyResolver defaultKeyResolver,
+            ILoggerFactory loggerFactory)
         {
-            _keyManagementOptions = new KeyManagementOptions(keyManagementOptions); // clone so new instance is immutable
+            _keyManagementOptions = new KeyManagementOptions(kmOptions); // clone so new instance is immutable
             _keyManager = keyManager;
-            _cacheableKeyRingProvider = services?.GetService<ICacheableKeyRingProvider>() ?? this;
-            _logger = services?.GetLogger<KeyRingProvider>();
-            _defaultKeyResolver = services?.GetService<IDefaultKeyResolver>()
-                ?? new DefaultKeyResolver(_keyManagementOptions.KeyPropagationWindow, _keyManagementOptions.MaxServerClockSkew, services);
+            _cacheableKeyRingProvider = cacheableKeyRingProvider ?? this;
+            _defaultKeyResolver = defaultKeyResolver;
+            _logger = loggerFactory.CreateLogger<KeyRingProvider>();
         }
 
         private CacheableKeyRing CreateCacheableKeyRingCore(DateTimeOffset now, IKey keyJustAdded)

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
@@ -12,14 +13,9 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// </summary>
     public sealed class ManagedAuthenticatedEncryptorConfiguration : IAuthenticatedEncryptorConfiguration, IInternalAuthenticatedEncryptorConfiguration
     {
-        private readonly IServiceProvider _services;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public ManagedAuthenticatedEncryptorConfiguration(ManagedAuthenticatedEncryptionSettings settings)
-            : this(settings, services: null)
-        {
-        }
-
-        public ManagedAuthenticatedEncryptorConfiguration(ManagedAuthenticatedEncryptionSettings settings, IServiceProvider services)
+        public ManagedAuthenticatedEncryptorConfiguration(ManagedAuthenticatedEncryptionSettings settings, ILoggerFactory loggerFactory)
         {
             if (settings == null)
             {
@@ -27,7 +23,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             }
 
             Settings = settings;
-            _services = services;
+            _loggerFactory = loggerFactory;
         }
 
         public ManagedAuthenticatedEncryptionSettings Settings { get; }
@@ -39,7 +35,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
         IAuthenticatedEncryptorDescriptor IInternalAuthenticatedEncryptorConfiguration.CreateDescriptorFromSecret(ISecret secret)
         {
-            return new ManagedAuthenticatedEncryptorDescriptor(Settings, secret, _services);
+            return new ManagedAuthenticatedEncryptorDescriptor(Settings, secret, _loggerFactory);
         }
     }
 }

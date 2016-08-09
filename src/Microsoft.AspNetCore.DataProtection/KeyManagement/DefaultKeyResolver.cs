@@ -39,11 +39,11 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
         /// </remarks>
         private readonly TimeSpan _maxServerToServerClockSkew;
 
-        public DefaultKeyResolver(TimeSpan keyPropagationWindow, TimeSpan maxServerToServerClockSkew, IServiceProvider services)
+        public DefaultKeyResolver(TimeSpan keyPropagationWindow, TimeSpan maxServerToServerClockSkew, ILoggerFactory loggerFactory)
         {
             _keyPropagationWindow = keyPropagationWindow;
             _maxServerToServerClockSkew = maxServerToServerClockSkew;
-            _logger = services.GetLogger<DefaultKeyResolver>();
+            _logger = loggerFactory.CreateLogger<DefaultKeyResolver>();
         }
 
         private bool CanCreateAuthenticatedEncryptor(IKey key)

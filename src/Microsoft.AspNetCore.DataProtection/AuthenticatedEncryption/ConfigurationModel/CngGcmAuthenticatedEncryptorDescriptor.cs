@@ -15,12 +15,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     {
         private readonly ILogger _log;
 
-        public CngGcmAuthenticatedEncryptorDescriptor(CngGcmAuthenticatedEncryptionSettings settings, ISecret masterKey)
-            : this(settings, masterKey, services: null)
-        {
-        }
-
-        public CngGcmAuthenticatedEncryptorDescriptor(CngGcmAuthenticatedEncryptionSettings settings, ISecret masterKey, IServiceProvider services)
+        public CngGcmAuthenticatedEncryptorDescriptor(CngGcmAuthenticatedEncryptionSettings settings, ISecret masterKey, ILoggerFactory loggerFactory)
         {
             if (settings == null)
             {
@@ -34,7 +29,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
             Settings = settings;
             MasterKey = masterKey;
-            _log = services.GetLogger<CngGcmAuthenticatedEncryptorDescriptor>();
+            _log = loggerFactory.CreateLogger<CngGcmAuthenticatedEncryptorDescriptor>();
         }
 
         internal ISecret MasterKey { get; }

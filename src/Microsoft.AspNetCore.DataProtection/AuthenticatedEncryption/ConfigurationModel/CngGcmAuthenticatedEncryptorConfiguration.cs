@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
@@ -11,14 +12,9 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// </summary>
     public sealed class CngGcmAuthenticatedEncryptorConfiguration : IAuthenticatedEncryptorConfiguration, IInternalAuthenticatedEncryptorConfiguration
     {
-        private readonly IServiceProvider _services;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public CngGcmAuthenticatedEncryptorConfiguration(CngGcmAuthenticatedEncryptionSettings settings)
-            : this(settings, services: null)
-        {
-        }
-
-        public CngGcmAuthenticatedEncryptorConfiguration(CngGcmAuthenticatedEncryptionSettings settings, IServiceProvider services)
+        public CngGcmAuthenticatedEncryptorConfiguration(CngGcmAuthenticatedEncryptionSettings settings, ILoggerFactory loggerFactory)
         {
             if (settings == null)
             {
@@ -26,7 +22,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             }
 
             Settings = settings;
-            _services = services;
+            _loggerFactory = loggerFactory;
         }
 
         public CngGcmAuthenticatedEncryptionSettings Settings { get; }
@@ -38,7 +34,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
         IAuthenticatedEncryptorDescriptor IInternalAuthenticatedEncryptorConfiguration.CreateDescriptorFromSecret(ISecret secret)
         {
-            return new CngGcmAuthenticatedEncryptorDescriptor(Settings, secret, _services);
+            return new CngGcmAuthenticatedEncryptorDescriptor(Settings, secret, _loggerFactory);
         }
     }
 }

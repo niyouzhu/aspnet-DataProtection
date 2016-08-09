@@ -117,9 +117,9 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
             return algorithmHandle;
         }
 
-        IInternalAuthenticatedEncryptorConfiguration IInternalAuthenticatedEncryptionSettings.ToConfiguration(IServiceProvider services)
+        IInternalAuthenticatedEncryptorConfiguration IInternalAuthenticatedEncryptionSettings.ToConfiguration(ILoggerFactory loggerFactory)
         {
-            return new CngGcmAuthenticatedEncryptorConfiguration(this, services);
+            return new CngGcmAuthenticatedEncryptorConfiguration(this, loggerFactory);
         }
     }
 }

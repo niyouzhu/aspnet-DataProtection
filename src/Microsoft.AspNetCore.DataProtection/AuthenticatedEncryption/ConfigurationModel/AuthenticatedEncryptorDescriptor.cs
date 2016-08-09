@@ -3,6 +3,7 @@
 
 using System;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
@@ -12,14 +13,9 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// </summary>
     public sealed class AuthenticatedEncryptorDescriptor : IAuthenticatedEncryptorDescriptor
     {
-        private readonly IServiceProvider _services;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public AuthenticatedEncryptorDescriptor(AuthenticatedEncryptionSettings settings, ISecret masterKey)
-            : this(settings, masterKey, services: null)
-        {
-        }
-
-        public AuthenticatedEncryptorDescriptor(AuthenticatedEncryptionSettings settings, ISecret masterKey, IServiceProvider services)
+        public AuthenticatedEncryptorDescriptor(AuthenticatedEncryptionSettings settings, ISecret masterKey, ILoggerFactory loggerFactory)
         {
             if (settings == null)
             {
@@ -33,7 +29,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
             Settings = settings;
             MasterKey = masterKey;
-            _services = services;
+            _loggerFactory = loggerFactory;
         }
 
         internal ISecret MasterKey { get; }
@@ -42,7 +38,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
         public IAuthenticatedEncryptor CreateEncryptorInstance()
         {
-            return Settings.CreateAuthenticatedEncryptorInstance(MasterKey, _services);
+            return Settings.CreateAuthenticatedEncryptorInstance(MasterKey, _loggerFactory);
         }
 
         public XmlSerializedDescriptorInfo ExportToXml()

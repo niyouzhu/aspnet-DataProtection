@@ -50,61 +50,23 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
 
         private CancellationTokenSource _cacheExpirationTokenSource;
 
-        /// <summary>
-        /// Creates an <see cref="XmlKeyManager"/>.
-        /// </summary>
-        /// <param name="repository">The repository where keys are stored.</param>
-        /// <param name="configuration">Configuration for newly-created keys.</param>
-        /// <param name="services">A provider of optional services.</param>
         public XmlKeyManager(
             IXmlRepository repository,
-            IAuthenticatedEncryptorConfiguration configuration,
-            IServiceProvider services)
+            IXmlEncryptor encryptor,
+            IAuthenticatedEncryptorConfiguration authenticatedEncryptorConfiguration,
+            IKeyEscrowSink keyEscrowSink,
+            IInternalXmlKeyManager internalKeyManager,
+            IActivator activator,
+            ILoggerFactory loggerFactory)
         {
-            if (repository == null)
-            {
-                throw new ArgumentNullException(nameof(repository));
-            }
-
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-
-            KeyEncryptor = services.GetService<IXmlEncryptor>(); // optional
+            // TODO: Handle repository/encryptor special logic
             KeyRepository = repository;
-
-            _activator = services.GetActivator(); // returns non-null
-            _authenticatedEncryptorConfiguration = configuration;
-            _internalKeyManager = services.GetService<IInternalXmlKeyManager>() ?? this;
-            _keyEscrowSink = services.GetKeyEscrowSink(); // not required
-            _logger = services.GetLogger<XmlKeyManager>(); // not required
-            TriggerAndResetCacheExpirationToken(suppressLogging: true);
-        }
-
-        internal XmlKeyManager(IServiceProvider services)
-        {
-            // First, see if an explicit encryptor or repository was specified.
-            // If either was specified, then we won't use the fallback.
-            KeyEncryptor = services.GetService<IXmlEncryptor>(); // optional
-            KeyRepository = (KeyEncryptor != null)
-                ? services.GetRequiredService<IXmlRepository>() // required if encryptor is specified
-                : services.GetService<IXmlRepository>(); // optional if encryptor not specified
-
-            // If the repository is missing, then we get both the encryptor and the repository from the fallback.
-            // If the fallback is missing, the final call to GetRequiredService below will throw.
-            if (KeyRepository == null)
-            {
-                var defaultKeyServices = services.GetService<IDefaultKeyServices>();
-                KeyEncryptor = defaultKeyServices?.GetKeyEncryptor(); // optional
-                KeyRepository = defaultKeyServices?.GetKeyRepository() ?? services.GetRequiredService<IXmlRepository>();
-            }
-
-            _activator = services.GetActivator(); // returns non-null
-            _authenticatedEncryptorConfiguration = services.GetRequiredService<IAuthenticatedEncryptorConfiguration>();
-            _internalKeyManager = services.GetService<IInternalXmlKeyManager>() ?? this;
-            _keyEscrowSink = services.GetKeyEscrowSink(); // not required
-            _logger = services.GetLogger<XmlKeyManager>(); // not required
+            KeyEncryptor = encryptor;
+            _authenticatedEncryptorConfiguration = authenticatedEncryptorConfiguration;
+            _internalKeyManager = internalKeyManager ?? this;
+            _keyEscrowSink = keyEscrowSink;
+            _activator = activator;
+            _logger = loggerFactory.CreateLogger<XmlKeyManager>();
             TriggerAndResetCacheExpirationToken(suppressLogging: true);
         }
 

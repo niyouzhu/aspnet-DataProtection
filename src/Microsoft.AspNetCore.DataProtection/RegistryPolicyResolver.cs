@@ -8,8 +8,11 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Cryptography;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.DataProtection.Internal;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 
 namespace Microsoft.AspNetCore.DataProtection
@@ -20,10 +23,14 @@ namespace Microsoft.AspNetCore.DataProtection
     internal sealed class RegistryPolicyResolver
     {
         private readonly RegistryKey _policyRegKey;
+        private readonly IActivator _activator;
+        private readonly ILoggerFactory _loggerFactory;
 
-        internal RegistryPolicyResolver(RegistryKey policyRegKey)
+        internal RegistryPolicyResolver(RegistryKey policyRegKey, IActivator activator, ILoggerFactory loggerFactory)
         {
             _policyRegKey = policyRegKey;
+            _activator = activator;
+            _loggerFactory = loggerFactory;
         }
 
         // populates an options object from values stored in the registry
@@ -81,34 +88,34 @@ namespace Microsoft.AspNetCore.DataProtection
         }
 
         /// <summary>
-        /// Returns an array of <see cref="ServiceDescriptor"/>s from the default registry location.
+        /// Returns a <see cref="RegistryPolicyContext"/> from the default registry location.
         /// </summary>
-        public static ServiceDescriptor[] ResolveDefaultPolicy()
+        public static RegistryPolicyContext ResolveDefaultPolicy(IActivator activator, ILoggerFactory loggerFactory)
         {
             var subKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\DotNetPackages\Microsoft.AspNetCore.DataProtection");
             if (subKey != null)
             {
                 using (subKey)
                 {
-                    return new RegistryPolicyResolver(subKey).ResolvePolicy();
+                    return new RegistryPolicyResolver(subKey, activator, loggerFactory).ResolvePolicy();
                 }
             }
-            else
-            {
-                return new ServiceDescriptor[0];
-            }
+
+            return null;
         }
 
-        internal ServiceDescriptor[] ResolvePolicy()
+        internal RegistryPolicyContext ResolvePolicy()
         {
-            return ResolvePolicyCore().ToArray(); // fully evaluate enumeration while the reg key is open
+            return ResolvePolicyCore(); // fully evaluate enumeration while the reg key is open
         }
 
-        private IEnumerable<ServiceDescriptor> ResolvePolicyCore()
+        private RegistryPolicyContext ResolvePolicyCore()
         {
             // Read the encryption options type: CNG-CBC, CNG-GCM, Managed
             IInternalAuthenticatedEncryptionSettings options = null;
-            string encryptionType = (string)_policyRegKey.GetValue("EncryptionType");
+            IAuthenticatedEncryptorConfiguration configuration = null;
+
+            var encryptionType = (string)_policyRegKey.GetValue("EncryptionType");
             if (String.Equals(encryptionType, "CNG-CBC", StringComparison.OrdinalIgnoreCase))
             {
                 options = new CngCbcAuthenticatedEncryptionSettings();
@@ -128,22 +135,16 @@ namespace Microsoft.AspNetCore.DataProtection
             if (options != null)
             {
                 PopulateOptions(options, _policyRegKey);
-                yield return DataProtectionServiceDescriptors.IAuthenticatedEncryptorConfiguration_FromSettings(options);
+                configuration = options.ToConfiguration(_loggerFactory);
             }
 
             // Read ancillary data
 
-            int? defaultKeyLifetime = (int?)_policyRegKey.GetValue("DefaultKeyLifetime");
-            if (defaultKeyLifetime.HasValue)
-            {
-                yield return DataProtectionServiceDescriptors.ConfigureOptions_DefaultKeyLifetime(defaultKeyLifetime.Value);
-            }
+            var defaultKeyLifetime = (int?)_policyRegKey.GetValue("DefaultKeyLifetime");
 
-            var keyEscrowSinks = ReadKeyEscrowSinks(_policyRegKey);
-            foreach (var keyEscrowSink in keyEscrowSinks)
-            {
-                yield return DataProtectionServiceDescriptors.IKeyEscrowSink_FromTypeName(keyEscrowSink);
-            }
+            var keyEscrowSinks = ReadKeyEscrowSinks(_policyRegKey).Select(item => _activator.CreateInstance<IKeyEscrowSink>(item));
+
+            return new RegistryPolicyContext(configuration, keyEscrowSinks, defaultKeyLifetime);
         }
     }
 }

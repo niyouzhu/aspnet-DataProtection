@@ -134,9 +134,9 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
             }
         }
 
-        IInternalAuthenticatedEncryptorConfiguration IInternalAuthenticatedEncryptionSettings.ToConfiguration(IServiceProvider services)
+        IInternalAuthenticatedEncryptorConfiguration IInternalAuthenticatedEncryptionSettings.ToConfiguration(ILoggerFactory loggerFactory)
         {
-            return new ManagedAuthenticatedEncryptorConfiguration(this, services);
+            return new ManagedAuthenticatedEncryptorConfiguration(this, loggerFactory);
         }
 
         /// <summary>

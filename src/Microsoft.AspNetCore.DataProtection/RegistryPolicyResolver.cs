@@ -22,13 +22,20 @@ namespace Microsoft.AspNetCore.DataProtection
     /// </summary>
     internal sealed class RegistryPolicyResolver
     {
-        private readonly RegistryKey _policyRegKey;
+        private readonly Func<RegistryKey> _getPolicyRegKey;
         private readonly IActivator _activator;
         private readonly ILoggerFactory _loggerFactory;
 
+        public RegistryPolicyResolver(IActivator activator, ILoggerFactory loggerFactory)
+        {
+            _getPolicyRegKey = () => Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\DotNetPackages\Microsoft.AspNetCore.DataProtection");
+            _activator = activator;
+            _loggerFactory = loggerFactory;
+        }
+
         internal RegistryPolicyResolver(RegistryKey policyRegKey, IActivator activator, ILoggerFactory loggerFactory)
         {
-            _policyRegKey = policyRegKey;
+            _getPolicyRegKey = () => policyRegKey;
             _activator = activator;
             _loggerFactory = loggerFactory;
         }
@@ -92,30 +99,29 @@ namespace Microsoft.AspNetCore.DataProtection
         /// </summary>
         public static RegistryPolicyContext ResolveDefaultPolicy(IActivator activator, ILoggerFactory loggerFactory)
         {
-            var subKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\DotNetPackages\Microsoft.AspNetCore.DataProtection");
-            if (subKey != null)
-            {
-                using (subKey)
-                {
-                    return new RegistryPolicyResolver(subKey, activator, loggerFactory).ResolvePolicy();
-                }
-            }
-
-            return null;
+                return new RegistryPolicyResolver(activator, loggerFactory).ResolvePolicy();
         }
 
         internal RegistryPolicyContext ResolvePolicy()
         {
-            return ResolvePolicyCore(); // fully evaluate enumeration while the reg key is open
+            using (var registryKey = _getPolicyRegKey())
+            {
+                return ResolvePolicyCore(registryKey); // fully evaluate enumeration while the reg key is open
+            }
         }
 
-        private RegistryPolicyContext ResolvePolicyCore()
+        private RegistryPolicyContext ResolvePolicyCore(RegistryKey policyRegKey)
         {
+            if (policyRegKey == null)
+            {
+                return null;
+            }
+
             // Read the encryption options type: CNG-CBC, CNG-GCM, Managed
             IInternalAuthenticatedEncryptionSettings options = null;
             IAuthenticatedEncryptorConfiguration configuration = null;
 
-            var encryptionType = (string)_policyRegKey.GetValue("EncryptionType");
+            var encryptionType = (string)policyRegKey.GetValue("EncryptionType");
             if (String.Equals(encryptionType, "CNG-CBC", StringComparison.OrdinalIgnoreCase))
             {
                 options = new CngCbcAuthenticatedEncryptionSettings();
@@ -134,15 +140,15 @@ namespace Microsoft.AspNetCore.DataProtection
             }
             if (options != null)
             {
-                PopulateOptions(options, _policyRegKey);
+                PopulateOptions(options, policyRegKey);
                 configuration = options.ToConfiguration(_loggerFactory);
             }
 
             // Read ancillary data
 
-            var defaultKeyLifetime = (int?)_policyRegKey.GetValue("DefaultKeyLifetime");
+            var defaultKeyLifetime = (int?)policyRegKey.GetValue("DefaultKeyLifetime");
 
-            var keyEscrowSinks = ReadKeyEscrowSinks(_policyRegKey).Select(item => _activator.CreateInstance<IKeyEscrowSink>(item));
+            var keyEscrowSinks = ReadKeyEscrowSinks(policyRegKey).Select(item => _activator.CreateInstance<IKeyEscrowSink>(item));
 
             return new RegistryPolicyContext(configuration, keyEscrowSinks, defaultKeyLifetime);
         }

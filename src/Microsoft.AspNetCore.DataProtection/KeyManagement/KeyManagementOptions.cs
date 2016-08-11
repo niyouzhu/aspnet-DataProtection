@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 
 namespace Microsoft.AspNetCore.DataProtection.KeyManagement
 {
@@ -119,5 +123,13 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
                 _newKeyLifetime = value;
             }
         }
+
+        public IAuthenticatedEncryptorConfiguration AuthenticatedEncryptorConfiguration { get; set; }
+
+        public List<IKeyEscrowSink> KeyEscrowSinks { get; } = new List<IKeyEscrowSink>();
+
+        public IXmlRepository XmlRepository { get; set; }
+
+        public IXmlEncryptor XmlEncryptor { get; set; }
     }
 }

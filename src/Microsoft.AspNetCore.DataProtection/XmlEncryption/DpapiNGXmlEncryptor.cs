@@ -29,18 +29,8 @@ namespace Microsoft.AspNetCore.DataProtection.XmlEncryption
         /// </summary>
         /// <param name="protectionDescriptorRule">The rule string from which to create the protection descriptor.</param>
         /// <param name="flags">Flags controlling the creation of the protection descriptor.</param>
-        public DpapiNGXmlEncryptor(string protectionDescriptorRule, DpapiNGProtectionDescriptorFlags flags)
-            : this(protectionDescriptorRule, flags, services: null)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new instance of a <see cref="DpapiNGXmlEncryptor"/>.
-        /// </summary>
-        /// <param name="protectionDescriptorRule">The rule string from which to create the protection descriptor.</param>
-        /// <param name="flags">Flags controlling the creation of the protection descriptor.</param>
-        /// <param name="services">An optional <see cref="IServiceProvider"/> to provide ancillary services.</param>
-        public DpapiNGXmlEncryptor(string protectionDescriptorRule, DpapiNGProtectionDescriptorFlags flags, IServiceProvider services)
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        public DpapiNGXmlEncryptor(string protectionDescriptorRule, DpapiNGProtectionDescriptorFlags flags, ILoggerFactory loggerFactory)
         {
             if (protectionDescriptorRule == null)
             {
@@ -53,7 +43,7 @@ namespace Microsoft.AspNetCore.DataProtection.XmlEncryption
             UnsafeNativeMethods.ThrowExceptionForNCryptStatus(ntstatus);
             CryptoUtil.AssertSafeHandleIsValid(_protectionDescriptorHandle);
 
-            _logger = services.GetLogger<DpapiNGXmlEncryptor>();
+            _logger = loggerFactory.CreateLogger<DpapiNGXmlEncryptor>();
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Cryptography;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.DataProtection.KeyManagement
 {
@@ -39,10 +40,10 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
         /// </remarks>
         private readonly TimeSpan _maxServerToServerClockSkew;
 
-        public DefaultKeyResolver(TimeSpan keyPropagationWindow, TimeSpan maxServerToServerClockSkew, ILoggerFactory loggerFactory)
+        public DefaultKeyResolver(IOptions<KeyManagementOptions> keyManagementOptions, ILoggerFactory loggerFactory)
         {
-            _keyPropagationWindow = keyPropagationWindow;
-            _maxServerToServerClockSkew = maxServerToServerClockSkew;
+            _keyPropagationWindow = keyManagementOptions.Value.KeyPropagationWindow;
+            _maxServerToServerClockSkew = keyManagementOptions.Value.MaxServerClockSkew;
             _logger = loggerFactory.CreateLogger<DefaultKeyResolver>();
         }
 

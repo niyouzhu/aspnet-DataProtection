@@ -4,6 +4,8 @@
 using System;
 using System.Security.Cryptography;
 using System.Xml.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
@@ -13,7 +15,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// </summary>
     public sealed class ManagedAuthenticatedEncryptorDescriptorDeserializer : IAuthenticatedEncryptorDescriptorDeserializer
     {
-        private readonly IServiceProvider _services;
+        private readonly ILoggerFactory _loggerFactory;
 
         public ManagedAuthenticatedEncryptorDescriptorDeserializer()
             : this(services: null)
@@ -22,7 +24,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
         public ManagedAuthenticatedEncryptorDescriptorDeserializer(IServiceProvider services)
         {
-            _services = services;
+            _loggerFactory = services.GetRequiredService<ILoggerFactory>();
         }
 
         /// <summary>
@@ -53,7 +55,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
             Secret masterKey = ((string)element.Element("masterKey")).ToSecret();
 
-            return new ManagedAuthenticatedEncryptorDescriptor(settings, masterKey, _services);
+            return new ManagedAuthenticatedEncryptorDescriptor(settings, masterKey, _loggerFactory);
         }
 
         // Any changes to this method should also be be reflected

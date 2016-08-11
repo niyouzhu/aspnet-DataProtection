@@ -2,9 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Cryptography.Cng;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.Internal;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
+using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -26,7 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<IActivator, RC1ForwardingActivator>();
             services.AddOptions();
-            services.TryAdd(DataProtectionServices.GetDefaultServices());
+            AddDataProtectionServices(services);
 
             return new DataProtectionBuilder(services);
         }
@@ -53,5 +59,39 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Configure(setupAction);
             return builder;
         }
-    }
+
+        private static void AddDataProtectionServices(IServiceCollection services)
+        {
+            services.AddSingleton<ILoggerFactory>(DataProtectionProviderFactory.GetDefaultLoggerFactory());
+
+            if (OSVersionUtil.IsWindows())
+            {
+                services.AddSingleton<RegistryPolicyResolver>();
+            }
+
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IConfigureOptions<KeyManagementOptions>, KeyManagementOptionsSetup>());
+            services.TryAddEnumerable(
+                ServiceDescriptor.Transient<IConfigureOptions<DataProtectionOptions>, DataProtectionOptionsSetup>());
+
+            services.AddSingleton<IKeyManager, XmlKeyManager>();
+
+            // Internal services
+            services.AddSingleton<IDefaultKeyResolver, DefaultKeyResolver>();
+            services.AddSingleton<IKeyRingProvider, KeyRingProvider>();
+
+            services.AddSingleton<IDataProtectionProvider>(s =>
+            {
+                var dpOptions = s.GetRequiredService<IOptions<DataProtectionOptions>>();
+                var keyRingProvider = s.GetRequiredService<IKeyRingProvider>();
+                var loggerFactory = s.GetRequiredService<ILoggerFactory>();
+
+                return DataProtectionProviderFactory.Create(dpOptions.Value, keyRingProvider, loggerFactory);
+            });
+
+#if !NETSTANDARD1_3 // [[ISSUE60]] Remove this #ifdef when Core CLR gets support for EncryptedXml
+            services.AddSingleton<ICertificateResolver, CertificateResolver>();
+#endif
+        }
+}
 }

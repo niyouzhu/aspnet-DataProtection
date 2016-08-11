@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Win32;
+using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 #if !NETSTANDARD1_3 // [[ISSUE60]] Remove this #ifdef when Core CLR gets support for EncryptedXml
 using System.Security.Cryptography.X509Certificates;
@@ -68,7 +71,11 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(sink));
             }
 
-            builder.Services.AddSingleton<IKeyEscrowSink>(sink);
+            builder.Services.Configure<KeyManagementOptions>(options =>
+            {
+                options.KeyEscrowSinks.Add(sink);
+            });
+
             return builder;
         }
 
@@ -89,7 +96,15 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.Services.AddSingleton<IKeyEscrowSink, TImplementation>();
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var implementationInstance = services.GetRequiredService<TImplementation>();
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.KeyEscrowSinks.Add(implementationInstance);
+                });
+            });
+
             return builder;
         }
 
@@ -114,7 +129,15 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            builder.Services.AddSingleton<IKeyEscrowSink>(factory);
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var instance = factory(services);
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.KeyEscrowSinks.Add(instance);
+                });
+            });
+
             return builder;
         }
 
@@ -182,7 +205,15 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(directory));
             }
 
-            Use(builder.Services, DataProtectionServiceDescriptors.IXmlRepository_FileSystem(directory));
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.XmlRepository = new FileSystemXmlRepository(directory, loggerFactory);
+                });
+            });
+
             return builder;
         }
 
@@ -204,7 +235,15 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(registryKey));
             }
 
-            Use(builder.Services, DataProtectionServiceDescriptors.IXmlRepository_Registry(registryKey));
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.XmlRepository = new RegistryXmlRepository(registryKey, loggerFactory);
+                });
+            });
+
             return builder;
         }
 
@@ -228,7 +267,15 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(certificate));
             }
 
-            Use(builder.Services, DataProtectionServiceDescriptors.IXmlEncryptor_Certificate(certificate));
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.XmlEncryptor = new CertificateXmlEncryptor(certificate, loggerFactory);
+                });
+            });
+
             return builder;
         }
 
@@ -256,12 +303,20 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw Error.CertificateXmlEncryptor_CertificateNotFound(thumbprint);
             }
 
-            var services = builder.Services;
-
             // ICertificateResolver is necessary for this type to work correctly, so register it
             // if it doesn't already exist.
-            services.TryAdd(DataProtectionServiceDescriptors.ICertificateResolver_Default());
-            Use(services, DataProtectionServiceDescriptors.IXmlEncryptor_Certificate(thumbprint));
+            builder.Services.TryAddSingleton<ICertificateResolver, CertificateResolver>();
+
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                var certificateResolver = services.GetRequiredService<ICertificateResolver>();
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.XmlEncryptor = new CertificateXmlEncryptor(thumbprint, certificateResolver, loggerFactory);
+                });
+            });
+
             return builder;
         }
 
@@ -305,7 +360,15 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            Use(builder.Services, DataProtectionServiceDescriptors.IXmlEncryptor_Dpapi(protectToLocalMachine));
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.XmlEncryptor = new DpapiXmlEncryptor(protectToLocalMachine, loggerFactory);
+                });
+            });
+
             return builder;
         }
 
@@ -358,7 +421,15 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(protectionDescriptorRule));
             }
 
-            Use(builder.Services, DataProtectionServiceDescriptors.IXmlEncryptor_DpapiNG(protectionDescriptorRule, flags));
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.XmlEncryptor = new DpapiNGXmlEncryptor(protectionDescriptorRule, flags, loggerFactory);
+                });
+            });
+
             return builder;
         }
 
@@ -496,7 +567,16 @@ namespace Microsoft.AspNetCore.DataProtection
         private static IDataProtectionBuilder UseCryptographicAlgorithmsCore(IDataProtectionBuilder builder, IInternalAuthenticatedEncryptionSettings settings)
         {
             settings.Validate(); // perform self-test
-            Use(builder.Services, DataProtectionServiceDescriptors.IAuthenticatedEncryptorConfiguration_FromSettings(settings));
+
+            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            {
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                return new ConfigureOptions<KeyManagementOptions>(options =>
+                {
+                    options.AuthenticatedEncryptorConfiguration = settings.ToConfiguration(loggerFactory);
+                });
+            });
+
             return builder;
         }
 
@@ -517,30 +597,9 @@ namespace Microsoft.AspNetCore.DataProtection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            Use(builder.Services, DataProtectionServiceDescriptors.IDataProtectionProvider_Ephemeral());
+            builder.Services.Replace(ServiceDescriptor.Singleton<IDataProtectionProvider, EphemeralDataProtectionProvider>());
+
             return builder;
-        }
-
-        /*
-         * UTILITY ISERVICECOLLECTION METHODS
-         */
-
-        private static void RemoveAllServicesOfType(IServiceCollection services, Type serviceType)
-        {
-            // We go backward since we're modifying the collection in-place.
-            for (var i = services.Count - 1; i >= 0; i--)
-            {
-                if (services[i]?.ServiceType == serviceType)
-                {
-                    services.RemoveAt(i);
-                }
-            }
-        }
-
-        private static void Use(IServiceCollection services, ServiceDescriptor descriptor)
-        {
-            RemoveAllServicesOfType(services, descriptor.ServiceType);
-            services.Add(descriptor);
         }
     }
 }

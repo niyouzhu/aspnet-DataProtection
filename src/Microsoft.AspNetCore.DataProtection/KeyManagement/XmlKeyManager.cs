@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Options;
 using static System.FormattableString;
 
 namespace Microsoft.AspNetCore.DataProtection.KeyManagement
@@ -50,21 +50,25 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
 
         private CancellationTokenSource _cacheExpirationTokenSource;
 
-        public XmlKeyManager(
-            IXmlRepository repository,
-            IXmlEncryptor encryptor,
-            IAuthenticatedEncryptorConfiguration authenticatedEncryptorConfiguration,
-            IKeyEscrowSink keyEscrowSink,
+        public XmlKeyManager(IOptions<KeyManagementOptions> keyManagementOptions, IActivator activator, ILoggerFactory loggerFactory)
+            : this(keyManagementOptions, internalKeyManager: null, activator: activator, loggerFactory: loggerFactory)
+        {
+        }
+
+        internal XmlKeyManager(
+            IOptions<KeyManagementOptions> keyManagementOptions,
             IInternalXmlKeyManager internalKeyManager,
             IActivator activator,
             ILoggerFactory loggerFactory)
         {
             // TODO: Handle repository/encryptor special logic
-            KeyRepository = repository;
-            KeyEncryptor = encryptor;
-            _authenticatedEncryptorConfiguration = authenticatedEncryptorConfiguration;
+            KeyRepository = keyManagementOptions.Value.XmlRepository;
+            KeyEncryptor = keyManagementOptions.Value.XmlEncryptor;
+            _authenticatedEncryptorConfiguration = keyManagementOptions.Value.AuthenticatedEncryptorConfiguration;
             _internalKeyManager = internalKeyManager ?? this;
-            _keyEscrowSink = keyEscrowSink;
+
+            var escrowSinks = keyManagementOptions.Value.KeyEscrowSinks;
+            _keyEscrowSink = escrowSinks.Count > 0 ? new AggregateKeyEscrowSink(escrowSinks) : null;
             _activator = activator;
             _logger = loggerFactory.CreateLogger<XmlKeyManager>();
             TriggerAndResetCacheExpirationToken(suppressLogging: true);
@@ -415,6 +419,24 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
             var friendlyName = Invariant($"revocation-{keyId:D}");
             KeyRepository.StoreElement(revocationElement, friendlyName);
             TriggerAndResetCacheExpirationToken();
+        }
+
+        private sealed class AggregateKeyEscrowSink : IKeyEscrowSink
+        {
+            private readonly List<IKeyEscrowSink> _sinks;
+
+            public AggregateKeyEscrowSink(List<IKeyEscrowSink> sinks)
+            {
+                _sinks = sinks;
+            }
+
+            public void Store(Guid keyId, XElement element)
+            {
+                foreach (var sink in _sinks)
+                {
+                    sink.Store(keyId, element);
+                }
+            }
         }
     }
 }

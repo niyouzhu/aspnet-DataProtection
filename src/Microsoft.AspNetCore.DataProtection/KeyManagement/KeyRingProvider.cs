@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Cryptography;
 using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.DataProtection.KeyManagement
 {
@@ -22,14 +23,19 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
         private readonly IKeyManager _keyManager;
         private readonly ILogger _logger;
 
+        public KeyRingProvider(IKeyManager keyManager, IOptions<KeyManagementOptions> kmOptions, IDefaultKeyResolver defaultKeyResolver, ILoggerFactory loggerFactory)
+            : this(keyManager, kmOptions, cacheableKeyRingProvider: null, defaultKeyResolver: defaultKeyResolver, loggerFactory: loggerFactory)
+        {
+        }
+
         public KeyRingProvider(
             IKeyManager keyManager,
-            KeyManagementOptions kmOptions,
+            IOptions<KeyManagementOptions> kmOptions,
             ICacheableKeyRingProvider cacheableKeyRingProvider,
             IDefaultKeyResolver defaultKeyResolver,
             ILoggerFactory loggerFactory)
         {
-            _keyManagementOptions = new KeyManagementOptions(kmOptions); // clone so new instance is immutable
+            _keyManagementOptions = new KeyManagementOptions(kmOptions.Value); // clone so new instance is immutable
             _keyManager = keyManager;
             _cacheableKeyRingProvider = cacheableKeyRingProvider ?? this;
             _defaultKeyResolver = defaultKeyResolver;

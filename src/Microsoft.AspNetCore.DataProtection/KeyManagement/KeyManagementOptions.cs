@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.DataProtection.XmlEncryption;
@@ -131,5 +132,7 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
         public IXmlRepository XmlRepository { get; set; }
 
         public IXmlEncryptor XmlEncryptor { get; set; }
+
+        public List<IAuthenticatedEncryptorFactory> AuthenticatedEncryptorFactories { get; } = new List<IAuthenticatedEncryptorFactory>();
     }
 }

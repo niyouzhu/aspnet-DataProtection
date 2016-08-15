@@ -118,21 +118,21 @@ namespace Microsoft.AspNetCore.DataProtection
             }
 
             // Read the encryption options type: CNG-CBC, CNG-GCM, Managed
-            IInternalAuthenticatedEncryptionSettings options = null;
+            IInternalAuthenticatedEncryptorConfiguration options = null;
             IAuthenticatedEncryptorConfiguration configuration = null;
 
             var encryptionType = (string)policyRegKey.GetValue("EncryptionType");
             if (String.Equals(encryptionType, "CNG-CBC", StringComparison.OrdinalIgnoreCase))
             {
-                options = new CngCbcAuthenticatedEncryptionSettings();
+                options = new CngCbcAuthenticatedEncryptorConfiguration();
             }
             else if (String.Equals(encryptionType, "CNG-GCM", StringComparison.OrdinalIgnoreCase))
             {
-                options = new CngGcmAuthenticatedEncryptionSettings();
+                options = new CngGcmAuthenticatedEncryptorConfiguration();
             }
             else if (String.Equals(encryptionType, "Managed", StringComparison.OrdinalIgnoreCase))
             {
-                options = new ManagedAuthenticatedEncryptionSettings();
+                options = new ManagedAuthenticatedEncryptorConfiguration();
             }
             else if (!String.IsNullOrEmpty(encryptionType))
             {
@@ -141,7 +141,7 @@ namespace Microsoft.AspNetCore.DataProtection
             if (options != null)
             {
                 PopulateOptions(options, policyRegKey);
-                configuration = options.ToConfiguration(_loggerFactory);
+                configuration = options;
             }
 
             // Read ancillary data

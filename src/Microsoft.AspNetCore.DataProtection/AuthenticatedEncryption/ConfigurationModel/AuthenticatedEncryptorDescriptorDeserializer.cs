@@ -15,8 +15,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// </summary>
     public sealed class AuthenticatedEncryptorDescriptorDeserializer : IAuthenticatedEncryptorDescriptorDeserializer
     {
-        private readonly ILoggerFactory _loggerFactory;
-
         public AuthenticatedEncryptorDescriptorDeserializer()
             : this(services: null)
         {
@@ -24,7 +22,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
         public AuthenticatedEncryptorDescriptorDeserializer(IServiceProvider services)
         {
-            _loggerFactory = services.GetRequiredService<ILoggerFactory>();
         }
 
         /// <summary>
@@ -43,20 +40,20 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             //   <masterKey requiresEncryption="true">...</masterKey>
             // </descriptor>
 
-            var settings = new AuthenticatedEncryptionSettings();
+            var settings = new AuthenticatedEncryptorConfiguration();
 
             var encryptionElement = element.Element("encryption");
             settings.EncryptionAlgorithm = (EncryptionAlgorithm)Enum.Parse(typeof(EncryptionAlgorithm), (string)encryptionElement.Attribute("algorithm"));
 
             // only read <validation> if not GCM
-            if (!AuthenticatedEncryptionSettings.IsGcmAlgorithm(settings.EncryptionAlgorithm))
+            if (!settings.IsGcmAlgorithm())
             {
                 var validationElement = element.Element("validation");
                 settings.ValidationAlgorithm = (ValidationAlgorithm)Enum.Parse(typeof(ValidationAlgorithm), (string)validationElement.Attribute("algorithm"));
             }
 
             Secret masterKey = ((string)element.Elements("masterKey").Single()).ToSecret();
-            return new AuthenticatedEncryptorDescriptor(settings, masterKey, _loggerFactory);
+            return new AuthenticatedEncryptorDescriptor(settings, masterKey);
         }
     }
 }

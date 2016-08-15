@@ -20,5 +20,10 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
         /// configuration given specific secret key material.
         /// </summary>
         IAuthenticatedEncryptorDescriptor CreateDescriptorFromSecret(ISecret secret);
+
+        /// <summary>
+        /// Performs a self-test of the algorithm specified by the configuration object.
+        /// </summary>
+        void Validate();
     }
 }

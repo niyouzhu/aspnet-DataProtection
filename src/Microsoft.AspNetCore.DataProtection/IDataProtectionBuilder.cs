@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using System.IO;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 
 namespace Microsoft.AspNetCore.DataProtection
 {
@@ -24,7 +25,7 @@ namespace Microsoft.AspNetCore.DataProtection
     /// <para>
     /// Similarly, when a developer modifies the default protected payload cryptographic
     /// algorithms, it is intended that he also select an explitiy key storage location.
-    /// A call to <see cref="DataProtectionBuilderExtensions.UseCryptographicAlgorithms(IDataProtectionBuilder,AuthenticatedEncryptionSettings)"/>
+    /// A call to <see cref="DataProtectionBuilderExtensions.UseCryptographicAlgorithms(IDataProtectionBuilder,AuthenticatedEncryptorConfiguration)"/>
     /// should therefore generally be paired with a call to <see cref="DataProtectionBuilderExtensions.PersistKeysToFileSystem(IDataProtectionBuilder,DirectoryInfo)"/>,
     /// for example.
     /// </para>
@@ -48,7 +49,7 @@ namespace Microsoft.AspNetCore.DataProtection
     /// <para>
     /// Similarly, when a developer modifies the default protected payload cryptographic
     /// algorithms, it is intended that he also select an explitiy key storage location.
-    /// A call to <see cref="DataProtectionBuilderExtensions.UseCryptographicAlgorithms(IDataProtectionBuilder,AuthenticatedEncryptionSettings)"/>
+    /// A call to <see cref="DataProtectionBuilderExtensions.UseCryptographicAlgorithms(IDataProtectionBuilder,AuthenticatedEncryptorConfiguration)"/>
     /// should therefore generally be paired with a call to <see cref="DataProtectionBuilderExtensions.PersistKeysToFileSystem(IDataProtectionBuilder,DirectoryInfo)"/>,
     /// for example.
     /// </para>

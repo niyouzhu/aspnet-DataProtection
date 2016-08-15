@@ -3,19 +3,16 @@
 
 using System;
 using System.Xml.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
     /// <summary>
     /// A descriptor which can create an authenticated encryption system based upon the
-    /// configuration provided by an <see cref="CngCbcAuthenticatedEncryptionSettings"/> object.
+    /// configuration provided by an <see cref="CngCbcAuthenticatedEncryptorConfiguration"/> object.
     /// </summary>
     public sealed class CngCbcAuthenticatedEncryptorDescriptor : IAuthenticatedEncryptorDescriptor
     {
-        private readonly ILogger _log;
-
-        public CngCbcAuthenticatedEncryptorDescriptor(CngCbcAuthenticatedEncryptionSettings settings, ISecret masterKey, ILoggerFactory loggerFactory)
+        public CngCbcAuthenticatedEncryptorDescriptor(CngCbcAuthenticatedEncryptorConfiguration settings, ISecret masterKey)
         {
             if (settings == null)
             {
@@ -29,17 +26,11 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
             Settings = settings;
             MasterKey = masterKey;
-            _log = loggerFactory.CreateLogger<CngCbcAuthenticatedEncryptorDescriptor>();
         }
 
         internal ISecret MasterKey { get; }
 
-        internal CngCbcAuthenticatedEncryptionSettings Settings { get; }
-
-        public IAuthenticatedEncryptor CreateEncryptorInstance()
-        {
-            return Settings.CreateAuthenticatedEncryptorInstance(MasterKey, _log);
-        }
+        internal CngCbcAuthenticatedEncryptorConfiguration Settings { get; }
 
         public XmlSerializedDescriptorInfo ExportToXml()
         {

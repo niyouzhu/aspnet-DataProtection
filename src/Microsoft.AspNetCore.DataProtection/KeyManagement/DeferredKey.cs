@@ -23,11 +23,11 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
             DateTimeOffset expirationDate,
             IInternalXmlKeyManager keyManager,
             XElement keyElement)
-            : base(keyId, creationDate, activationDate, expirationDate, new Lazy<IAuthenticatedEncryptor>(GetLazyEncryptorDelegate(keyManager, keyElement)))
+            : base(keyId, creationDate, activationDate, expirationDate, new Lazy<IAuthenticatedEncryptorDescriptor>(GetLazyDescriptorDelegate(keyManager, keyElement)))
         {
         }
 
-        private static Func<IAuthenticatedEncryptor> GetLazyEncryptorDelegate(IInternalXmlKeyManager keyManager, XElement keyElement)
+        private static Func<IAuthenticatedEncryptorDescriptor> GetLazyDescriptorDelegate(IInternalXmlKeyManager keyManager, XElement keyElement)
         {
             // The <key> element will be held around in memory for a potentially lengthy period
             // of time. Since it might contain sensitive information, we should protect it.
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
 
             try
             {
-                return () => keyManager.DeserializeDescriptorFromKeyElement(encryptedKeyElement.ToXElement()).CreateEncryptorInstance();
+                return () => keyManager.DeserializeDescriptorFromKeyElement(encryptedKeyElement.ToXElement());
             }
             finally
             {

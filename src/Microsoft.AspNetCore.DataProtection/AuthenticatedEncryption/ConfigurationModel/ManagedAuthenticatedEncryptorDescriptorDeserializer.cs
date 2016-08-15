@@ -15,8 +15,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// </summary>
     public sealed class ManagedAuthenticatedEncryptorDescriptorDeserializer : IAuthenticatedEncryptorDescriptorDeserializer
     {
-        private readonly ILoggerFactory _loggerFactory;
-
         public ManagedAuthenticatedEncryptorDescriptorDeserializer()
             : this(services: null)
         {
@@ -24,7 +22,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
         public ManagedAuthenticatedEncryptorDescriptorDeserializer(IServiceProvider services)
         {
-            _loggerFactory = services.GetRequiredService<ILoggerFactory>();
         }
 
         /// <summary>
@@ -44,7 +41,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             //   <masterKey>...</masterKey>
             // </descriptor>
 
-            var settings = new ManagedAuthenticatedEncryptionSettings();
+            var settings = new ManagedAuthenticatedEncryptorConfiguration();
 
             var encryptionElement = element.Element("encryption");
             settings.EncryptionAlgorithmType = FriendlyNameToType((string)encryptionElement.Attribute("algorithm"));
@@ -55,7 +52,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
             Secret masterKey = ((string)element.Element("masterKey")).ToSecret();
 
-            return new ManagedAuthenticatedEncryptorDescriptor(settings, masterKey, _loggerFactory);
+            return new ManagedAuthenticatedEncryptorDescriptor(settings, masterKey);
         }
 
         // Any changes to this method should also be be reflected

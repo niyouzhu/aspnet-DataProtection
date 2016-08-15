@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Cryptography.Cng;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using Microsoft.Extensions.Logging;
@@ -32,12 +33,12 @@ namespace Microsoft.AspNetCore.DataProtection
             if (OSVersionUtil.IsWindows())
             {
                 // Fastest implementation: AES-256-GCM [CNG]
-                keyringProvider = new EphemeralKeyRing<CngGcmAuthenticatedEncryptionSettings>();
+                keyringProvider = new EphemeralKeyRing<CngGcmAuthenticatedEncryptorConfiguration>();
             }
             else
             {
                 // Slowest implementation: AES-256-CBC + HMACSHA256 [Managed]
-                keyringProvider = new EphemeralKeyRing<ManagedAuthenticatedEncryptionSettings>();
+                keyringProvider = new EphemeralKeyRing<ManagedAuthenticatedEncryptorConfiguration>();
             }
 
             var logger = loggerFactory.CreateLogger<EphemeralDataProtectionProvider>();
@@ -58,12 +59,12 @@ namespace Microsoft.AspNetCore.DataProtection
         }
 
         private sealed class EphemeralKeyRing<T> : IKeyRing, IKeyRingProvider
-            where T : IInternalAuthenticatedEncryptionSettings, new()
+            where T : IInternalAuthenticatedEncryptorConfiguration, new()
         {
             // Currently hardcoded to a 512-bit KDK.
             private const int NUM_BYTES_IN_KDK = 512 / 8;
 
-            public IAuthenticatedEncryptor DefaultAuthenticatedEncryptor { get; } = new T().ToConfiguration(loggerFactory: null).CreateNewDescriptor().CreateEncryptorInstance();
+            public IAuthenticatedEncryptor DefaultAuthenticatedEncryptor { get; } = GetDefaultEncryptor();
 
             public Guid DefaultKeyId { get; } = default(Guid);
 
@@ -76,6 +77,25 @@ namespace Microsoft.AspNetCore.DataProtection
             public IKeyRing GetCurrentKeyRing()
             {
                 return this;
+            }
+
+            private static IAuthenticatedEncryptor GetDefaultEncryptor()
+            {
+                var configuration = new T();
+                if (configuration is CngGcmAuthenticatedEncryptorConfiguration)
+                {
+                    var descriptor = (CngGcmAuthenticatedEncryptorDescriptor)new T().CreateNewDescriptor();
+                    return new CngGcmAuthenticatedEncryptorFactory(configuration, DataProtectionProviderFactory.GetDefaultLoggerFactory())
+                        .CreateAuthenticatedEncryptorInstance(descriptor.MasterKey);
+                }
+                else if (configuration is ManagedAuthenticatedEncryptorConfiguration)
+                {
+                    var descriptor = (ManagedAuthenticatedEncryptorDescriptor)new T().CreateNewDescriptor();
+                    return new ManagedAuthenticatedEncryptorFactory(configuration, DataProtectionProviderFactory.GetDefaultLoggerFactory())
+                        .CreateAuthenticatedEncryptorInstance(descriptor.MasterKey);
+                }
+
+                return null;
             }
         }
     }

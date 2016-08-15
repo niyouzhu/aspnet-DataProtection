@@ -13,6 +13,7 @@ using Microsoft.Win32;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 
 #if !NETSTANDARD1_3 // [[ISSUE60]] Remove this #ifdef when Core CLR gets support for EncryptedXml
 using System.Security.Cryptography.X509Certificates;
@@ -468,7 +469,7 @@ namespace Microsoft.AspNetCore.DataProtection
         /// <param name="builder">The <see cref="IDataProtectionBuilder"/>.</param>
         /// <param name="settings">Information about what cryptographic algorithms should be used.</param>
         /// <returns>A reference to the <see cref="IDataProtectionBuilder" /> after this operation has completed.</returns>
-        public static IDataProtectionBuilder UseCryptographicAlgorithms(this IDataProtectionBuilder builder, AuthenticatedEncryptionSettings settings)
+        public static IDataProtectionBuilder UseCryptographicAlgorithms(this IDataProtectionBuilder builder, AuthenticatedEncryptorConfiguration settings)
         {
             if (builder == null)
             {
@@ -496,7 +497,7 @@ namespace Microsoft.AspNetCore.DataProtection
         /// This API is only available on Windows.
         /// </remarks>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static IDataProtectionBuilder UseCustomCryptographicAlgorithms(this IDataProtectionBuilder builder, CngCbcAuthenticatedEncryptionSettings settings)
+        public static IDataProtectionBuilder UseCustomCryptographicAlgorithms(this IDataProtectionBuilder builder, CngCbcAuthenticatedEncryptorConfiguration settings)
         {
             if (builder == null)
             {
@@ -524,7 +525,7 @@ namespace Microsoft.AspNetCore.DataProtection
         /// This API is only available on Windows.
         /// </remarks>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static IDataProtectionBuilder UseCustomCryptographicAlgorithms(this IDataProtectionBuilder builder, CngGcmAuthenticatedEncryptionSettings settings)
+        public static IDataProtectionBuilder UseCustomCryptographicAlgorithms(this IDataProtectionBuilder builder, CngGcmAuthenticatedEncryptorConfiguration settings)
         {
             if (builder == null)
             {
@@ -549,7 +550,7 @@ namespace Microsoft.AspNetCore.DataProtection
         /// <param name="settings">Information about what cryptographic algorithms should be used.</param>
         /// <returns>A reference to the <see cref="IDataProtectionBuilder" /> after this operation has completed.</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static IDataProtectionBuilder UseCustomCryptographicAlgorithms(this IDataProtectionBuilder builder, ManagedAuthenticatedEncryptionSettings settings)
+        public static IDataProtectionBuilder UseCustomCryptographicAlgorithms(this IDataProtectionBuilder builder, ManagedAuthenticatedEncryptorConfiguration settings)
         {
             if (builder == null)
             {
@@ -564,17 +565,13 @@ namespace Microsoft.AspNetCore.DataProtection
             return UseCryptographicAlgorithmsCore(builder, settings);
         }
 
-        private static IDataProtectionBuilder UseCryptographicAlgorithmsCore(IDataProtectionBuilder builder, IInternalAuthenticatedEncryptionSettings settings)
+        private static IDataProtectionBuilder UseCryptographicAlgorithmsCore(IDataProtectionBuilder builder, IInternalAuthenticatedEncryptorConfiguration settings)
         {
             settings.Validate(); // perform self-test
 
-            builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(services =>
+            builder.Services.Configure<KeyManagementOptions>(options =>
             {
-                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-                return new ConfigureOptions<KeyManagementOptions>(options =>
-                {
-                    options.AuthenticatedEncryptorConfiguration = settings.ToConfiguration(loggerFactory);
-                });
+                options.AuthenticatedEncryptorConfiguration = settings;
             });
 
             return builder;

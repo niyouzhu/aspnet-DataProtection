@@ -95,14 +95,14 @@ namespace Microsoft.AspNetCore.DataProtection
         }
 
         /// <summary>
-        /// Returns a <see cref="RegistryPolicyContext"/> from the default registry location.
+        /// Returns a <see cref="RegistryPolicy"/> from the default registry location.
         /// </summary>
-        public static RegistryPolicyContext ResolveDefaultPolicy(IActivator activator, ILoggerFactory loggerFactory)
+        public static RegistryPolicy ResolveDefaultPolicy(IActivator activator, ILoggerFactory loggerFactory)
         {
                 return new RegistryPolicyResolver(activator, loggerFactory).ResolvePolicy();
         }
 
-        internal RegistryPolicyContext ResolvePolicy()
+        internal RegistryPolicy ResolvePolicy()
         {
             using (var registryKey = _getPolicyRegKey())
             {
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.DataProtection
             }
         }
 
-        private RegistryPolicyContext ResolvePolicyCore(RegistryKey policyRegKey)
+        private RegistryPolicy ResolvePolicyCore(RegistryKey policyRegKey)
         {
             if (policyRegKey == null)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.DataProtection
 
             var keyEscrowSinks = ReadKeyEscrowSinks(policyRegKey).Select(item => _activator.CreateInstance<IKeyEscrowSink>(item));
 
-            return new RegistryPolicyContext(configuration, keyEscrowSinks, defaultKeyLifetime);
+            return new RegistryPolicy(configuration, keyEscrowSinks, defaultKeyLifetime);
         }
     }
 }

@@ -62,7 +62,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static void AddDataProtectionServices(IServiceCollection services)
         {
-            services.AddSingleton<ILoggerFactory>(DataProtectionProviderFactory.GetDefaultLoggerFactory());
+            services.TryAddSingleton<ILoggerFactory>(DataProtectionProviderFactory.GetDefaultLoggerFactory());
 
             if (OSVersionUtil.IsWindows())
             {
@@ -86,12 +86,21 @@ namespace Microsoft.Extensions.DependencyInjection
                 var keyRingProvider = s.GetRequiredService<IKeyRingProvider>();
                 var loggerFactory = s.GetRequiredService<ILoggerFactory>();
 
-                return DataProtectionProviderFactory.Create(dpOptions.Value, keyRingProvider, loggerFactory);
+                IDataProtectionProvider dataProtectionProvider = null;
+                dataProtectionProvider = new KeyRingBasedDataProtectionProvider(keyRingProvider, loggerFactory);
+
+                // Link the provider to the supplied discriminator
+                if (!string.IsNullOrEmpty(dpOptions.Value.ApplicationDiscriminator))
+                {
+                    dataProtectionProvider = dataProtectionProvider.CreateProtector(dpOptions.Value.ApplicationDiscriminator);
+                }
+
+                return dataProtectionProvider;
             });
 
 #if !NETSTANDARD1_3 // [[ISSUE60]] Remove this #ifdef when Core CLR gets support for EncryptedXml
             services.AddSingleton<ICertificateResolver, CertificateResolver>();
 #endif
         }
-}
+    }
 }

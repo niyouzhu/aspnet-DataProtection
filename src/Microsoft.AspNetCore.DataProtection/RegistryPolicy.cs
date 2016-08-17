@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace Microsoft.AspNetCore.DataProtection
 {
-    internal class RegistryPolicyContext
+    internal class RegistryPolicy
     {
-        public RegistryPolicyContext(
+        public RegistryPolicy(
             IAuthenticatedEncryptorConfiguration configuration,
             IEnumerable<IKeyEscrowSink> keyEscrowSinks,
             int? defaultKeyLifetime)

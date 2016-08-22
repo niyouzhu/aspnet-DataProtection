@@ -565,7 +565,7 @@ namespace Microsoft.AspNetCore.DataProtection
             return UseCryptographicAlgorithmsCore(builder, settings);
         }
 
-        private static IDataProtectionBuilder UseCryptographicAlgorithmsCore(IDataProtectionBuilder builder, IInternalAuthenticatedEncryptorConfiguration settings)
+        private static IDataProtectionBuilder UseCryptographicAlgorithmsCore(IDataProtectionBuilder builder, AlgorithmConfiguration settings)
         {
             settings.Validate(); // perform self-test
 

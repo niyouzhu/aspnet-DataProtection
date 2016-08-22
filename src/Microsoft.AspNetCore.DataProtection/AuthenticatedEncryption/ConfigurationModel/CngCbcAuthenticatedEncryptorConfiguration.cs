@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Cryptography;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
@@ -11,7 +9,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// Represents a configured authenticated encryption mechanism which uses
     /// Windows CNG algorithms in CBC encryption + HMAC authentication modes.
     /// </summary>
-    public sealed class CngCbcAuthenticatedEncryptorConfiguration : IAuthenticatedEncryptorConfiguration, IInternalAuthenticatedEncryptorConfiguration
+    public sealed class CngCbcAuthenticatedEncryptorConfiguration : AlgorithmConfiguration
     {
         /// <summary>
         /// The name of the algorithm to use for symmetric encryption.
@@ -72,9 +70,14 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
         [ApplyPolicy]
         public string HashAlgorithmProvider { get; set; } = null;
 
-        public IAuthenticatedEncryptorDescriptor CreateNewDescriptor()
+        public override IAuthenticatedEncryptorDescriptor CreateNewDescriptor()
         {
-            return this.CreateNewDescriptorCore();
+            return CreateDescriptorFromSecret(Secret.Random(KDK_SIZE_IN_BYTES));
+        }
+
+        internal override IAuthenticatedEncryptorDescriptor CreateDescriptorFromSecret(ISecret secret)
+        {
+            return new CngCbcAuthenticatedEncryptorDescriptor(this, secret);
         }
 
         /// <summary>
@@ -82,7 +85,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
         /// that the specified algorithms actually exist and that they can be instantiated properly.
         /// An exception will be thrown if validation fails.
         /// </summary>
-        public void Validate()
+        internal override void Validate()
         {
             var factory = new CngCbcAuthenticatedEncryptorFactory(this, DataProtectionProviderFactory.GetDefaultLoggerFactory());
             // Run a sample payload through an encrypt -> decrypt operation to make sure data round-trips properly.
@@ -90,11 +93,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             {
                 encryptor.PerformSelfTest();
             }
-        }
-
-        IAuthenticatedEncryptorDescriptor IInternalAuthenticatedEncryptorConfiguration.CreateDescriptorFromSecret(ISecret secret)
-        {
-            return new CngCbcAuthenticatedEncryptorDescriptor(this, secret);
         }
     }
 }

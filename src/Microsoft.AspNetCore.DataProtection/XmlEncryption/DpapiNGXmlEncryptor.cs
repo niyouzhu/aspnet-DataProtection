@@ -2,14 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Security.Principal;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Cryptography;
 using Microsoft.AspNetCore.Cryptography.SafeHandles;
 using Microsoft.AspNetCore.DataProtection.Cng;
 using Microsoft.Extensions.Logging;
-
-using static System.FormattableString;
 
 namespace Microsoft.AspNetCore.DataProtection.XmlEncryption
 {
@@ -108,7 +107,7 @@ namespace Microsoft.AspNetCore.DataProtection.XmlEncryption
             using (var currentIdentity = WindowsIdentity.GetCurrent())
             {
                 // use the SID to create an SDDL string
-                return Invariant($"SID={currentIdentity.User.Value}");
+                return String.Format(CultureInfo.InvariantCulture, "SID={0}", currentIdentity.User.Value);
             }
         }
     }

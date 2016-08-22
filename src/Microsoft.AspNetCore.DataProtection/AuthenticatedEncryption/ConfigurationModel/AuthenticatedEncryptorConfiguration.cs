@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// <summary>
     /// Represents a generalized authenticated encryption mechanism.
     /// </summary>
-    public sealed class AuthenticatedEncryptorConfiguration : IAuthenticatedEncryptorConfiguration, IInternalAuthenticatedEncryptorConfiguration
+    public sealed class AuthenticatedEncryptorConfiguration : AlgorithmConfiguration
     {
         /// <summary>
         /// The algorithm to use for symmetric encryption (confidentiality).
@@ -28,12 +28,17 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
         /// </remarks>
         public ValidationAlgorithm ValidationAlgorithm { get; set; } = ValidationAlgorithm.HMACSHA256;
 
-        public IAuthenticatedEncryptorDescriptor CreateNewDescriptor()
+        public override IAuthenticatedEncryptorDescriptor CreateNewDescriptor()
         {
-            return this.CreateNewDescriptorCore();
+            return CreateDescriptorFromSecret(Secret.Random(KDK_SIZE_IN_BYTES));
         }
 
-        public void Validate()
+        internal override IAuthenticatedEncryptorDescriptor CreateDescriptorFromSecret(ISecret secret)
+        {
+            return new AuthenticatedEncryptorDescriptor(this, secret);
+        }
+
+        internal override void Validate()
         {
             var loggerFactory = DataProtectionProviderFactory.GetDefaultLoggerFactory();
             var sampleSecret = Secret.Random(512 / 8);
@@ -71,11 +76,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             {
                 (encryptor as IDisposable)?.Dispose();
             }
-        }
-
-        IAuthenticatedEncryptorDescriptor IInternalAuthenticatedEncryptorConfiguration.CreateDescriptorFromSecret(ISecret secret)
-        {
-            return new AuthenticatedEncryptorDescriptor(this, secret);
         }
     }
 }

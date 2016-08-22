@@ -4,7 +4,6 @@
 using System;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 
 namespace Microsoft.AspNetCore.DataProtection.KeyManagement
@@ -20,13 +19,13 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
             DateTimeOffset creationDate,
             DateTimeOffset activationDate,
             DateTimeOffset expirationDate,
-            IInternalXmlKeyManager keyManager,
+            XmlKeyManager keyManager,
             XElement keyElement)
             : base(keyId, creationDate, activationDate, expirationDate, new Lazy<IAuthenticatedEncryptorDescriptor>(GetLazyDescriptorDelegate(keyManager, keyElement)))
         {
         }
 
-        private static Func<IAuthenticatedEncryptorDescriptor> GetLazyDescriptorDelegate(IInternalXmlKeyManager keyManager, XElement keyElement)
+        private static Func<IAuthenticatedEncryptorDescriptor> GetLazyDescriptorDelegate(XmlKeyManager keyManager, XElement keyElement)
         {
             // The <key> element will be held around in memory for a potentially lengthy period
             // of time. Since it might contain sensitive information, we should protect it.

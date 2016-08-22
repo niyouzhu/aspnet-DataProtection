@@ -9,35 +9,35 @@ using System.Globalization;
 
 namespace System
 {
-    internal struct FormattableString
-    {
-        private readonly object[] _arguments;
-        public readonly string Format;
+    //internal struct FormattableString
+    //{
+    //    private readonly object[] _arguments;
+    //    public readonly string Format;
 
-        internal FormattableString(string format, params object[] arguments)
-        {
-            Format = format;
-            _arguments = arguments;
-        }
+    //    internal FormattableString(string format, params object[] arguments)
+    //    {
+    //        Format = format;
+    //        _arguments = arguments;
+    //    }
 
-        public object[] GetArguments() => _arguments;
+    //    public object[] GetArguments() => _arguments;
 
-        public static string Invariant(FormattableString formattable)
-        {
-            return String.Format(CultureInfo.InvariantCulture, formattable.Format, formattable.GetArguments());
-        }
-    }
+    //    public static string Invariant(FormattableString formattable)
+    //    {
+    //        return String.Format(CultureInfo.InvariantCulture, formattable.Format, formattable.GetArguments());
+    //    }
+    //}
 }
 
 namespace System.Runtime.CompilerServices
 {
-    internal static class FormattableStringFactory
-    {
-        public static FormattableString Create(string format, params object[] arguments)
-        {
-            return new FormattableString(format, arguments);
-        }
-    }
+    //internal static class FormattableStringFactory
+    //{
+    //    public static FormattableString Create(string format, params object[] arguments)
+    //    {
+    //        return new FormattableString(format, arguments);
+    //    }
+    //}
 }
 
 #endif

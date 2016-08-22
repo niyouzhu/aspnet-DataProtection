@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
         private readonly ILogger _logger;
         private readonly ManagedAuthenticatedEncryptorConfiguration _configuration;
 
-        public ManagedAuthenticatedEncryptorFactory(IAuthenticatedEncryptorConfiguration configuration, ILoggerFactory loggerFactory)
+        public ManagedAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _configuration = configuration as ManagedAuthenticatedEncryptorConfiguration ?? GetRequiredConfiguration(configuration);
             _logger = loggerFactory?.CreateLogger<ManagedAuthenticatedEncryptorDescriptor>();
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
                 validationAlgorithmFactory: GetKeyedHashAlgorithmFactory());
         }
 
-        private ManagedAuthenticatedEncryptorConfiguration GetRequiredConfiguration(IAuthenticatedEncryptorConfiguration configuration)
+        private ManagedAuthenticatedEncryptorConfiguration GetRequiredConfiguration(AlgorithmConfiguration configuration)
         {
             var authenticatedConfiguration = configuration as AuthenticatedEncryptorConfiguration;
             if (authenticatedConfiguration == null)

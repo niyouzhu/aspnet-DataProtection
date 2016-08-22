@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationM
 
 namespace Microsoft.AspNetCore.DataProtection.KeyManagement.Internal
 {
-    public interface IInternalXmlKeyManager
-    {
-        IKey CreateNewKey(Guid keyId, DateTimeOffset creationDate, DateTimeOffset activationDate, DateTimeOffset expirationDate);
+    //public interface IInternalXmlKeyManager
+    //{
+    //    IKey CreateNewKey(Guid keyId, DateTimeOffset creationDate, DateTimeOffset activationDate, DateTimeOffset expirationDate);
 
-        IAuthenticatedEncryptorDescriptor DeserializeDescriptorFromKeyElement(XElement keyElement);
+    //    IAuthenticatedEncryptorDescriptor DeserializeDescriptorFromKeyElement(XElement keyElement);
 
-        void RevokeSingleKey(Guid keyId, DateTimeOffset revocationDate, string reason);
-    }
+    //    void RevokeSingleKey(Guid keyId, DateTimeOffset revocationDate, string reason);
+    //}
 }

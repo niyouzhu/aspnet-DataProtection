@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
             }
         }
 
-        public IAuthenticatedEncryptorConfiguration AuthenticatedEncryptorConfiguration { get; set; }
+        public AlgorithmConfiguration AuthenticatedEncryptorConfiguration { get; set; }
 
         public List<IKeyEscrowSink> KeyEscrowSinks { get; } = new List<IKeyEscrowSink>();
 

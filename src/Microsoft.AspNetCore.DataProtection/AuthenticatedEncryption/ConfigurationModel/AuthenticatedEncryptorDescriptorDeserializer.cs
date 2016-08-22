@@ -4,8 +4,6 @@
 using System;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
@@ -15,15 +13,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// </summary>
     public sealed class AuthenticatedEncryptorDescriptorDeserializer : IAuthenticatedEncryptorDescriptorDeserializer
     {
-        public AuthenticatedEncryptorDescriptorDeserializer()
-            : this(services: null)
-        {
-        }
-
-        public AuthenticatedEncryptorDescriptorDeserializer(IServiceProvider services)
-        {
-        }
-
         /// <summary>
         /// Imports the <see cref="AuthenticatedEncryptorDescriptor"/> from serialized XML.
         /// </summary>

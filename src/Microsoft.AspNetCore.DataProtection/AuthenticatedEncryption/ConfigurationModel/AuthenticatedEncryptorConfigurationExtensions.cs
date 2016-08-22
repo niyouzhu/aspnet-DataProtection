@@ -7,18 +7,8 @@ using Microsoft.AspNetCore.Cryptography;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
-    internal static class ConfigurationCommon
+    internal static class AuthenticatedEncryptorConfigurationExtensions
     {
-        /// <summary>
-        /// Creates an <see cref="IAuthenticatedEncryptorDescriptor"/> from this <see cref="IInternalAuthenticatedEncryptorConfiguration"/>
-        /// using a random 512-bit master key generated from a secure PRNG.
-        /// </summary>
-        public static IAuthenticatedEncryptorDescriptor CreateNewDescriptorCore(this IInternalAuthenticatedEncryptorConfiguration configuration)
-        {
-            const int KDK_SIZE_IN_BYTES = 512 / 8;
-            return configuration.CreateDescriptorFromSecret(Secret.Random(KDK_SIZE_IN_BYTES));
-        }
-
         public static bool IsGcmAlgorithm(this AuthenticatedEncryptorConfiguration configuration)
         {
             var algorithm = configuration.EncryptionAlgorithm;

@@ -701,35 +701,35 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
             Assert.Equal("revocation-a11f35fc-1fed-4bd4-b727-056a63b70932", friendlyNameStoredInRepository);
         }
 
-        [Fact]
-        public void RevokeKey_CallsInternalManager()
-        {
-            // Arrange - mocks
-            var keyToRevoke = new Guid("a11f35fc-1fed-4bd4-b727-056a63b70932");
-            DateTimeOffset minRevocationDate = DateTimeOffset.UtcNow;
-            DateTimeOffset? actualRevocationDate = null;
-            var mockInternalKeyManager = new Mock<IInternalXmlKeyManager>();
-            mockInternalKeyManager
-                .Setup(o => o.RevokeSingleKey(keyToRevoke, It.IsAny<DateTimeOffset>(), "Here's some reason text."))
-                .Callback<Guid, DateTimeOffset, string>((innerKeyId, innerRevocationDate, innerReason) =>
-                {
-                    actualRevocationDate = innerRevocationDate;
-                });
+        //[Fact]
+        //public void RevokeKey_CallsInternalManager()
+        //{
+        //    // Arrange - mocks
+        //    var keyToRevoke = new Guid("a11f35fc-1fed-4bd4-b727-056a63b70932");
+        //    DateTimeOffset minRevocationDate = DateTimeOffset.UtcNow;
+        //    DateTimeOffset? actualRevocationDate = null;
+        //    var mockInternalKeyManager = new Mock<IInternalXmlKeyManager>();
+        //    mockInternalKeyManager
+        //        .Setup(o => o.RevokeSingleKey(keyToRevoke, It.IsAny<DateTimeOffset>(), "Here's some reason text."))
+        //        .Callback<Guid, DateTimeOffset, string>((innerKeyId, innerRevocationDate, innerReason) =>
+        //        {
+        //            actualRevocationDate = innerRevocationDate;
+        //        });
 
-            // Arrange - services
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IXmlRepository>(new Mock<IXmlRepository>().Object);
-            serviceCollection.AddSingleton<IAuthenticatedEncryptorConfiguration>(new Mock<IAuthenticatedEncryptorConfiguration>().Object);
-            serviceCollection.AddSingleton<IInternalXmlKeyManager>(mockInternalKeyManager.Object);
-            var services = serviceCollection.BuildServiceProvider();
-            var keyManager = new XmlKeyManager(services);
+        //    // Arrange - services
+        //    var serviceCollection = new ServiceCollection();
+        //    serviceCollection.AddSingleton<IXmlRepository>(new Mock<IXmlRepository>().Object);
+        //    serviceCollection.AddSingleton<IAuthenticatedEncryptorConfiguration>(new Mock<IAuthenticatedEncryptorConfiguration>().Object);
+        //    serviceCollection.AddSingleton<IInternalXmlKeyManager>(mockInternalKeyManager.Object);
+        //    var services = serviceCollection.BuildServiceProvider();
+        //    var keyManager = new XmlKeyManager(services);
 
-            // Act
-            keyManager.RevokeKey(keyToRevoke, "Here's some reason text.");
+        //    // Act
+        //    keyManager.RevokeKey(keyToRevoke, "Here's some reason text.");
 
-            // Assert
-            Assert.InRange(actualRevocationDate.Value, minRevocationDate, DateTimeOffset.UtcNow);
-        }
+        //    // Assert
+        //    Assert.InRange(actualRevocationDate.Value, minRevocationDate, DateTimeOffset.UtcNow);
+        //}
 
         private class MyDeserializer : IAuthenticatedEncryptorDescriptorDeserializer
         {

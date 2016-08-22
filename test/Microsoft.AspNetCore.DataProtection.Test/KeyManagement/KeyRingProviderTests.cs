@@ -13,8 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-using static System.FormattableString;
-
 namespace Microsoft.AspNetCore.DataProtection.KeyManagement
 {
     public class KeyRingProviderTests

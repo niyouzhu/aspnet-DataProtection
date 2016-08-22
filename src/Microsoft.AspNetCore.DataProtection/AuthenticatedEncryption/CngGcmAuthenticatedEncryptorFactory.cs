@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationM
 using Microsoft.AspNetCore.DataProtection.Cng;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
 {
@@ -18,7 +17,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
         private readonly ILogger _logger;
         private readonly CngGcmAuthenticatedEncryptorConfiguration _configuration;
 
-        public CngGcmAuthenticatedEncryptorFactory(IAuthenticatedEncryptorConfiguration configuration, ILoggerFactory loggerFactory)
+        public CngGcmAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _configuration = configuration as CngGcmAuthenticatedEncryptorConfiguration ?? GetRequiredConfiguration(configuration);
             _logger = loggerFactory?.CreateLogger<CngGcmAuthenticatedEncryptorDescriptor>();
@@ -48,7 +47,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
                 symmetricAlgorithmKeySizeInBytes: (uint)(_configuration.EncryptionAlgorithmKeySize / 8));
         }
 
-        private CngGcmAuthenticatedEncryptorConfiguration GetRequiredConfiguration(IAuthenticatedEncryptorConfiguration configuration)
+        private CngGcmAuthenticatedEncryptorConfiguration GetRequiredConfiguration(AlgorithmConfiguration configuration)
         {
             var authenticatedConfiguration = configuration as AuthenticatedEncryptorConfiguration;
             if (authenticatedConfiguration == null)

@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// managed <see cref="System.Security.Cryptography.SymmetricAlgorithm"/> and
     /// <see cref="System.Security.Cryptography.KeyedHashAlgorithm"/> types.
     /// </summary>
-    public sealed class ManagedAuthenticatedEncryptorConfiguration : IAuthenticatedEncryptorConfiguration, IInternalAuthenticatedEncryptorConfiguration
+    public sealed class ManagedAuthenticatedEncryptorConfiguration : AlgorithmConfiguration
     {
         /// <summary>
         /// The type of the algorithm to use for symmetric encryption.
@@ -48,9 +48,14 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
         [ApplyPolicy]
         public Type ValidationAlgorithmType { get; set; } = typeof(HMACSHA256);
 
-        public IAuthenticatedEncryptorDescriptor CreateNewDescriptor()
+        public override IAuthenticatedEncryptorDescriptor CreateNewDescriptor()
         {
-            return this.CreateNewDescriptorCore();
+            return CreateDescriptorFromSecret(Secret.Random(KDK_SIZE_IN_BYTES));
+        }
+
+        internal override IAuthenticatedEncryptorDescriptor CreateDescriptorFromSecret(ISecret secret)
+        {
+            return new ManagedAuthenticatedEncryptorDescriptor(this, secret);
         }
 
         /// <summary>
@@ -58,7 +63,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
         /// that the specified algorithms actually exist and can be instantiated properly.
         /// An exception will be thrown if validation fails.
         /// </summary>
-        public void Validate()
+        internal override void Validate()
         {
             var factory = new ManagedAuthenticatedEncryptorFactory(this, DataProtectionProviderFactory.GetDefaultLoggerFactory());
             // Run a sample payload through an encrypt -> decrypt operation to make sure data round-trips properly.
@@ -68,9 +73,34 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             }
         }
 
-        IAuthenticatedEncryptorDescriptor IInternalAuthenticatedEncryptorConfiguration.CreateDescriptorFromSecret(ISecret secret)
+        // Any changes to this method should also be be reflected
+        // in ManagedAuthenticatedEncryptorDescriptorDeserializer.FriendlyNameToType.
+        private static string TypeToFriendlyName(Type type)
         {
-            return new ManagedAuthenticatedEncryptorDescriptor(this, secret);
+            if (type == typeof(Aes))
+            {
+                return nameof(Aes);
+            }
+            else if (type == typeof(HMACSHA1))
+            {
+                return nameof(HMACSHA1);
+            }
+            else if (type == typeof(HMACSHA256))
+            {
+                return nameof(HMACSHA256);
+            }
+            else if (type == typeof(HMACSHA384))
+            {
+                return nameof(HMACSHA384);
+            }
+            else if (type == typeof(HMACSHA512))
+            {
+                return nameof(HMACSHA512);
+            }
+            else
+            {
+                return type.AssemblyQualifiedName;
+            }
         }
     }
 }

@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationM
 using Microsoft.AspNetCore.DataProtection.Cng;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
 {
@@ -18,7 +17,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
         private readonly ILogger _logger;
         private readonly CngCbcAuthenticatedEncryptorConfiguration _configuration;
 
-        public CngCbcAuthenticatedEncryptorFactory(IAuthenticatedEncryptorConfiguration configuration, ILoggerFactory loggerFactory)
+        public CngCbcAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _configuration =  configuration as CngCbcAuthenticatedEncryptorConfiguration ?? GetRequiredConfiguration(configuration);
             _logger = loggerFactory?.CreateLogger<CngCbcAuthenticatedEncryptorDescriptor>();
@@ -49,7 +48,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
                 hmacAlgorithmHandle: GetHmacAlgorithmHandle());
         }
 
-        private CngCbcAuthenticatedEncryptorConfiguration GetRequiredConfiguration(IAuthenticatedEncryptorConfiguration configuration)
+        private CngCbcAuthenticatedEncryptorConfiguration GetRequiredConfiguration(AlgorithmConfiguration configuration)
         {
             var authenticatedConfiguration = configuration as AuthenticatedEncryptorConfiguration;
             if (authenticatedConfiguration == null)

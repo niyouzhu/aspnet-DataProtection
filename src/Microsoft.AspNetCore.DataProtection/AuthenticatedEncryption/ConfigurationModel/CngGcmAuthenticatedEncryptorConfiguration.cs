@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
     /// Represents a configured authenticated encryption mechanism which uses
     /// Windows CNG algorithms in GCM encryption + authentication modes.
     /// </summary>
-    public sealed class CngGcmAuthenticatedEncryptorConfiguration : IAuthenticatedEncryptorConfiguration, IInternalAuthenticatedEncryptorConfiguration
+    public sealed class CngGcmAuthenticatedEncryptorConfiguration : AlgorithmConfiguration
     {
         /// <summary>
         /// The name of the algorithm to use for symmetric encryption.
@@ -46,9 +46,14 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
         [ApplyPolicy]
         public int EncryptionAlgorithmKeySize { get; set; } = 256;
 
-        public IAuthenticatedEncryptorDescriptor CreateNewDescriptor()
+        public override IAuthenticatedEncryptorDescriptor CreateNewDescriptor()
         {
-            return this.CreateNewDescriptorCore();
+            return CreateDescriptorFromSecret(Secret.Random(KDK_SIZE_IN_BYTES));
+        }
+
+        internal override IAuthenticatedEncryptorDescriptor CreateDescriptorFromSecret(ISecret secret)
+        {
+            return new CngGcmAuthenticatedEncryptorDescriptor(this, secret);
         }
 
         /// <summary>
@@ -56,7 +61,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
         /// that the specified algorithm actually exists and can be instantiated properly.
         /// An exception will be thrown if validation fails.
         /// </summary>
-        public void Validate()
+        internal override void Validate()
         {
             var factory = new CngGcmAuthenticatedEncryptorFactory(this, DataProtectionProviderFactory.GetDefaultLoggerFactory());
             // Run a sample payload through an encrypt -> decrypt operation to make sure data round-trips properly.
@@ -64,11 +69,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             {
                 encryptor.PerformSelfTest();
             }
-        }
-
-        IAuthenticatedEncryptorDescriptor IInternalAuthenticatedEncryptorConfiguration.CreateDescriptorFromSecret(ISecret secret)
-        {
-            return new CngGcmAuthenticatedEncryptorDescriptor(this, secret);
         }
     }
 }

@@ -7,11 +7,9 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Cryptography;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.DataProtection.Internal;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 
@@ -118,30 +116,28 @@ namespace Microsoft.AspNetCore.DataProtection
             }
 
             // Read the encryption options type: CNG-CBC, CNG-GCM, Managed
-            IInternalAuthenticatedEncryptorConfiguration options = null;
-            IAuthenticatedEncryptorConfiguration configuration = null;
+            AlgorithmConfiguration configuration = null;
 
             var encryptionType = (string)policyRegKey.GetValue("EncryptionType");
             if (String.Equals(encryptionType, "CNG-CBC", StringComparison.OrdinalIgnoreCase))
             {
-                options = new CngCbcAuthenticatedEncryptorConfiguration();
+                configuration = new CngCbcAuthenticatedEncryptorConfiguration();
             }
             else if (String.Equals(encryptionType, "CNG-GCM", StringComparison.OrdinalIgnoreCase))
             {
-                options = new CngGcmAuthenticatedEncryptorConfiguration();
+                configuration = new CngGcmAuthenticatedEncryptorConfiguration();
             }
             else if (String.Equals(encryptionType, "Managed", StringComparison.OrdinalIgnoreCase))
             {
-                options = new ManagedAuthenticatedEncryptorConfiguration();
+                configuration = new ManagedAuthenticatedEncryptorConfiguration();
             }
             else if (!String.IsNullOrEmpty(encryptionType))
             {
                 throw CryptoUtil.Fail("Unrecognized EncryptionType: " + encryptionType);
             }
-            if (options != null)
+            if (configuration != null)
             {
-                PopulateOptions(options, policyRegKey);
-                configuration = options;
+                PopulateOptions(configuration, policyRegKey);
             }
 
             // Read ancillary data

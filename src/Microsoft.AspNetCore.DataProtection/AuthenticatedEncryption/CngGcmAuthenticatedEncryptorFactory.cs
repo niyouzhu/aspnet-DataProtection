@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
         public CngGcmAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _configuration = configuration as CngGcmAuthenticatedEncryptorConfiguration ?? GetRequiredConfiguration(configuration);
-            _logger = loggerFactory?.CreateLogger<CngGcmAuthenticatedEncryptorDescriptor>();
+            _logger = loggerFactory?.CreateLogger<CngGcmAuthenticatedEncryptorFactory>();
         }
 
         public IAuthenticatedEncryptor CreateEncryptorInstance(IKey key)

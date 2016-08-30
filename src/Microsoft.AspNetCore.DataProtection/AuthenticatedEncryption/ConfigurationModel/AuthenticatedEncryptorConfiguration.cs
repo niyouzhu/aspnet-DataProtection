@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore.Cryptography;
 using Microsoft.AspNetCore.Cryptography.Cng;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
@@ -47,7 +49,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             try
             {
                 // Run a sample payload through an encrypt -> decrypt operation to make sure data round-trips properly.
-                if (this.IsGcmAlgorithm())
+                if (IsGcmAlgorithm())
                 {
                     // GCM requires CNG, and CNG is only supported on Windows.
                     if (!OSVersionUtil.IsWindows())
@@ -75,6 +77,96 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
             finally
             {
                 (encryptor as IDisposable)?.Dispose();
+            }
+        }
+
+        public bool IsGcmAlgorithm()
+        {
+            return (EncryptionAlgorithm.AES_128_GCM <= EncryptionAlgorithm && EncryptionAlgorithm <= EncryptionAlgorithm.AES_256_GCM);
+        }
+
+        public int GetAlgorithmKeySizeInBits()
+        {
+            switch (EncryptionAlgorithm)
+            {
+                case EncryptionAlgorithm.AES_128_CBC:
+                case EncryptionAlgorithm.AES_128_GCM:
+                    return 128;
+
+                case EncryptionAlgorithm.AES_192_CBC:
+                case EncryptionAlgorithm.AES_192_GCM:
+                    return 192;
+
+                case EncryptionAlgorithm.AES_256_CBC:
+                case EncryptionAlgorithm.AES_256_GCM:
+                    return 256;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(EncryptionAlgorithm));
+            }
+        }
+
+        public string GetBCryptAlgorithmNameFromEncryptionAlgorithm()
+        {
+            switch (EncryptionAlgorithm)
+            {
+                case EncryptionAlgorithm.AES_128_CBC:
+                case EncryptionAlgorithm.AES_192_CBC:
+                case EncryptionAlgorithm.AES_256_CBC:
+                case EncryptionAlgorithm.AES_128_GCM:
+                case EncryptionAlgorithm.AES_192_GCM:
+                case EncryptionAlgorithm.AES_256_GCM:
+                    return Constants.BCRYPT_AES_ALGORITHM;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(EncryptionAlgorithm));
+            }
+        }
+
+        public string GetBCryptAlgorithmNameFromValidationAlgorithm()
+        {
+            switch (ValidationAlgorithm)
+            {
+                case ValidationAlgorithm.HMACSHA256:
+                    return Constants.BCRYPT_SHA256_ALGORITHM;
+
+                case ValidationAlgorithm.HMACSHA512:
+                    return Constants.BCRYPT_SHA512_ALGORITHM;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ValidationAlgorithm));
+            }
+        }
+
+        public Type GetManagedTypeFromEncryptionAlgorithm()
+        {
+            switch (EncryptionAlgorithm)
+            {
+                case EncryptionAlgorithm.AES_128_CBC:
+                case EncryptionAlgorithm.AES_192_CBC:
+                case EncryptionAlgorithm.AES_256_CBC:
+                case EncryptionAlgorithm.AES_128_GCM:
+                case EncryptionAlgorithm.AES_192_GCM:
+                case EncryptionAlgorithm.AES_256_GCM:
+                    return typeof(Aes);
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(EncryptionAlgorithm));
+            }
+        }
+
+        public Type GetManagedTypeFromValidationAlgorithm()
+        {
+            switch (ValidationAlgorithm)
+            {
+                case ValidationAlgorithm.HMACSHA256:
+                    return typeof(HMACSHA256);
+
+                case ValidationAlgorithm.HMACSHA512:
+                    return typeof(HMACSHA512);
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ValidationAlgorithm));
             }
         }
     }

@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
         public ManagedAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _configuration = configuration as ManagedAuthenticatedEncryptorConfiguration ?? GetRequiredConfiguration(configuration);
-            _logger = loggerFactory?.CreateLogger<ManagedAuthenticatedEncryptorDescriptor>();
+            _logger = loggerFactory?.CreateLogger<ManagedAuthenticatedEncryptorFactory>();
         }
 
         public IAuthenticatedEncryptor CreateEncryptorInstance(IKey key)

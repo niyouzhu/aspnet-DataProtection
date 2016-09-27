@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection.XmlEncryption;
@@ -17,8 +18,6 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
     /// </summary>
     public static class AzureDataProtectionBuilderExtensions
     {
-        internal const string DefaultEncryptionAlgorithm = JsonWebKeyEncryptionAlgorithm.RSAOAEP;
-
         /// <summary>
         /// Configures the data protection system to protect keys with specified key in Azure KeyVault.
         /// </summary>
@@ -40,7 +39,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
             KeyVaultClient.AuthenticationCallback callback =
                 (authority, resource, scope) => GetTokenFromClientCertificate(authority, resource, clientId, certificate);
 
-            return ProtectKeysWithAzureKeyVault(builder, new KeyVaultClient(callback), keyIdentifier, DefaultEncryptionAlgorithm);
+            return ProtectKeysWithAzureKeyVault(builder, new KeyVaultClient(callback), keyIdentifier);
         }
 
         /// <summary>
@@ -64,7 +63,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
             KeyVaultClient.AuthenticationCallback callback =
                 (authority, resource, scope) => GetTokenFromClientSecret(authority, resource, clientId, clientSecret);
 
-            return ProtectKeysWithAzureKeyVault(builder, new KeyVaultClient(callback), keyIdentifier, DefaultEncryptionAlgorithm);
+            return ProtectKeysWithAzureKeyVault(builder, new KeyVaultClient(callback), keyIdentifier);
         }
 
         /// <summary>
@@ -73,9 +72,8 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
         /// <param name="builder">The builder instance to modify.</param>
         /// <param name="keyIdentifier">The Azure KeyVault key identifier used for key encryption.</param>
         /// <param name="client">The <see cref="KeyVaultClient"/> to use for KeyVault access.</param>
-        /// <param name="algorithm">The encryption aalgorithm to use for key protection, see <see cref="JsonWebKeyEncryptionAlgorithm"/>.</param>
         /// <returns>The value <paramref name="builder"/>.</returns>
-        public static IDataProtectionBuilder ProtectKeysWithAzureKeyVault(this IDataProtectionBuilder builder, KeyVaultClient client, string keyIdentifier, string algorithm)
+        public static IDataProtectionBuilder ProtectKeysWithAzureKeyVault(this IDataProtectionBuilder builder, KeyVaultClient client, string keyIdentifier)
         {
             if (builder == null)
             {
@@ -89,12 +87,10 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
             {
                 throw new ArgumentNullException(nameof(keyIdentifier));
             }
-            if (algorithm == null)
-            {
-                throw new ArgumentNullException(nameof(algorithm));
-            }
-            builder.Services.AddSingleton<IXmlDecryptor>(services => new AzureKeyVaultXmlDecryptor(new KeyVaultClientWrappers(client), keyIdentifier, algorithm));
-            builder.Services.AddSingleton<IXmlEncryptor>(services => new AzureKeyVaultXmlEncryptor(new KeyVaultClientWrappers(client), keyIdentifier, algorithm));
+            var vaultClientWrapper = new KeyVaultClientWrapper(client);
+
+            builder.Services.AddSingleton<IKeyVaultWrappingClient>(vaultClientWrapper);
+            builder.Services.AddSingleton<IXmlEncryptor>(services => new AzureKeyVaultXmlEncryptor(vaultClientWrapper, keyIdentifier));
             return builder;
         }
 

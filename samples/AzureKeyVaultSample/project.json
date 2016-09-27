@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": true,
+    "copyToOutput": "settings.json"
+  },
+  "dependencies": {
+    "Microsoft.AspNetCore.DataProtection.Azure.KeyVault": "1.1.0-*",
+    "Microsoft.Extensions.Configuration": "1.1.0-*",
+    "Microsoft.Extensions.Configuration.Json": "1.1.0-*",
+    "Microsoft.Extensions.DependencyInjection": "1.1.0-*",
+    "Microsoft.Extensions.Logging": "1.1.0-alpha1-22013",
+    "Microsoft.Extensions.Logging.Console": "1.1.0-alpha1-21948"
+  },
+  "frameworks": {
+    "net451": {}
+  },
+  "publishOptions": {
+  }
+}

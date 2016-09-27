@@ -6,9 +6,9 @@ using Microsoft.Azure.KeyVault;
 
 namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
 {
-    internal interface IKeyVaultEncryptionClient
+    internal interface IKeyVaultWrappingClient
     {
-        Task<KeyOperationResult> DecryptAsync(string keyIdentifier, string algorithm, byte[] cipherText);
-        Task<KeyOperationResult> EncryptAsync(string keyIdentifier, string algorithm, byte[] cipherText);
+        Task<KeyOperationResult> UnwrapKeyAsync(string keyIdentifier, string algorithm, byte[] cipherText);
+        Task<KeyOperationResult> WrapKeyAsync(string keyIdentifier, string algorithm, byte[] cipherText);
     }
 }

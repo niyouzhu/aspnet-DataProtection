@@ -6,22 +6,19 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.DataProtection.XmlEncryption;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
 {
     internal class AzureKeyVaultXmlDecryptor: IXmlDecryptor
     {
-        private readonly IKeyVaultEncryptionClient _client;
-        private readonly string _keyId;
-        private readonly string _algorithm;
+        private readonly IKeyVaultWrappingClient _client;
 
-        public AzureKeyVaultXmlDecryptor(IKeyVaultEncryptionClient client, string keyId, string algorithm)
+        public AzureKeyVaultXmlDecryptor(IServiceProvider serviceProvider)
         {
-            _client = client;
-            _keyId = keyId;
-            _algorithm = algorithm;
+            _client = serviceProvider.GetService<IKeyVaultWrappingClient>();
         }
-        
+
         public XElement Decrypt(XElement encryptedElement)
         {
             return DecryptAsync(encryptedElement).GetAwaiter().GetResult();
@@ -29,10 +26,24 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
 
         private async Task<XElement> DecryptAsync(XElement encryptedElement)
         {
-            var protectedSecret = Convert.FromBase64String((string)encryptedElement.Element("value"));
+            var kid = (string)encryptedElement.Element("kid");
+            var symmetricKey = Convert.FromBase64String((string)encryptedElement.Element("key"));
+            var symmetricIV = Convert.FromBase64String((string)encryptedElement.Element("iv"));
 
-            var result = await _client.DecryptAsync(_keyId, _algorithm, protectedSecret);
-            using (var memoryStream = new MemoryStream(result.Result))
+            var encryptedValue = Convert.FromBase64String((string)encryptedElement.Element("value"));
+
+            var result = await _client.UnwrapKeyAsync(kid, AzureKeyVaultXmlEncryptor.DefaultKeyEncryption, symmetricKey);
+
+            byte[] decryptedValue;
+            using (var symmetricAlgorithm = AzureKeyVaultXmlEncryptor.DefaultSymmetricAlgorithmFactory())
+            {
+                using (var decryptor = symmetricAlgorithm.CreateDecryptor(result.Result, symmetricIV))
+                {
+                    decryptedValue = decryptor.TransformFinalBlock(encryptedValue, 0, encryptedValue.Length);
+                }
+            }
+
+            using (var memoryStream = new MemoryStream(decryptedValue))
             {
                 return XElement.Load(memoryStream);
             }

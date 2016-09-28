@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
             byte[] value;
             using (var memoryStream = new MemoryStream())
             {
-                plaintextElement.Save(memoryStream);
+                plaintextElement.Save(memoryStream, SaveOptions.DisableFormatting);
                 value = memoryStream.ToArray();
             }
 

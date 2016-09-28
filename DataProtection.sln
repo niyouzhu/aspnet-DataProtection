@@ -52,9 +52,9 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNetCore.DataPr
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Redis", "samples\Redis\Redis.xproj", "{24AAEC96-DF46-4F61-B2FF-3D5E056685D9}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNetCore.DataProtection.Azure.KeyVault", "src\Microsoft.AspNetCore.DataProtection.Azure.KeyVault\Microsoft.AspNetCore.DataProtection.Azure.KeyVault.xproj", "{7C850785-4741-4950-B774-E5F232C208D7}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNetCore.DataProtection.AzureKeyVault", "src\Microsoft.AspNetCore.DataProtection.AzureKeyVault\Microsoft.AspNetCore.DataProtection.AzureKeyVault.xproj", "{7C850785-4741-4950-B774-E5F232C208D7}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNetCore.DataProtection.Azure.KeyVault.Test", "test\Microsoft.AspNetCore.DataProtection.Azure.KeyVault.Test\Microsoft.AspNetCore.DataProtection.Azure.KeyVault.Test.xproj", "{03C45C7A-B98C-444B-A0E7-206C4C54F480}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNetCore.DataProtection.AzureKeyVault.Test", "test\Microsoft.AspNetCore.DataProtection.AzureKeyVault.Test\Microsoft.AspNetCore.DataProtection.AzureKeyVault.Test.xproj", "{03C45C7A-B98C-444B-A0E7-206C4C54F480}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AzureKeyVault", "samples\AzureKeyVault\AzureKeyVault.xproj", "{9546D3C4-C21A-447B-AF34-7995A803340B}"
 EndProject

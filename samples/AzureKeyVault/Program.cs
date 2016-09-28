@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.Azure.KeyVault;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

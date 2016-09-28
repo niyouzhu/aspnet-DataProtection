@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault.Test
             Assert.NotNull(result);
             Assert.NotNull(value);
             Assert.Equal(typeof(AzureKeyVaultXmlDecryptor), result.DecryptorType);
-            Assert.Equal("VfLYL2prdymawfucH3Goso0zkPbQ4/GKqUsj2TRtLzuRd1orCKN6d4KbpD5hDH2gehJj7tqW+sgh+OgymfEkaA==", encryptedElement.Element("value").Value);
+            Assert.Equal("VfLYL2prdymawfucH3Goso0zkPbQ4/GKqUsj2TRtLzsBPz7p7cL1SQaY6I29xSlsPQf6IjxHSz4sDJ427GvlLQ==", encryptedElement.Element("value").Value);
             Assert.Equal("AAECAwQFBgcICQoLDA0ODw==", encryptedElement.Element("iv").Value);
             Assert.Equal("Dw4NDAsKCQgHBgUEAwIBAA==", encryptedElement.Element("key").Value);
             Assert.Equal("KeyId", encryptedElement.Element("kid").Value);
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault.Test
           <kid>KeyId</kid>
           <key>Dw4NDAsKCQgHBgUEAwIBAA==</key>
           <iv>AAECAwQFBgcICQoLDA0ODw==</iv>
-          <value>VfLYL2prdymawfucH3Goso0zkPbQ4/GKqUsj2TRtLzuRd1orCKN6d4KbpD5hDH2gehJj7tqW+sgh+OgymfEkaA==</value>
+          <value>VfLYL2prdymawfucH3Goso0zkPbQ4/GKqUsj2TRtLzsBPz7p7cL1SQaY6I29xSlsPQf6IjxHSz4sDJ427GvlLQ==</value>
         </encryptedKey>"));
 
             Assert.NotNull(result);

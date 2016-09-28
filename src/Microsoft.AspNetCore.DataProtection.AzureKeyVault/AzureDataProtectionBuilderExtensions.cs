@@ -2,16 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.DataProtection.Azure.KeyVault;
 using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
-namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
+namespace Microsoft.AspNetCore.DataProtection
 {
     /// <summary>
     /// Contains Azure KeyVault-specific extension methods for modifying a <see cref="IDataProtectionBuilder"/>.

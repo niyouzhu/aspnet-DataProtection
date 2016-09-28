@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -20,11 +20,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault.Test
         {
             var mock = new Mock<IKeyVaultWrappingClient>();
             mock.Setup(client => client.WrapKeyAsync("key", JsonWebKeyEncryptionAlgorithm.RSAOAEP, It.IsAny<byte[]>()))
-                .Returns<string, string, byte[]>((_, __, data) => Task.FromResult(new KeyOperationResult()
-                {
-                    Result = data.Reverse().ToArray(),
-                    Kid = "KeyId"
-                }));
+                .Returns<string, string, byte[]>((_, __, data) => Task.FromResult(new KeyOperationResult("KeyId", data.Reverse().ToArray())));
 
             var encryptor = new AzureKeyVaultXmlEncryptor(mock.Object, "key", new MockNumberGenerator());
             var result = encryptor.Encrypt(new XElement("Element"));
@@ -47,10 +43,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault.Test
         {
             var mock = new Mock<IKeyVaultWrappingClient>();
             mock.Setup(client => client.UnwrapKeyAsync("KeyId", JsonWebKeyEncryptionAlgorithm.RSAOAEP, It.IsAny<byte[]>()))
-                .Returns<string, string, byte[]>((_, __, data) => Task.FromResult(new KeyOperationResult
-                {
-                    Result = data.Reverse().ToArray()
-                }));
+                .Returns<string, string, byte[]>((_, __, data) => Task.FromResult(new KeyOperationResult(null, data.Reverse().ToArray())));
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(mock.Object);

@@ -15,10 +15,11 @@
   },
   "dependencies": {
     "Microsoft.AspNetCore.DataProtection": "1.1.0-*",
-    "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.4",
-    "Microsoft.Azure.KeyVault": "1.0.0"
+    "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.5",
+    "Microsoft.Azure.KeyVault": "2.0.2-preview"
   },
   "frameworks": {
+    "netstandard1.5": { },
     "net451": {
       "frameworkAssemblies": {
         "System.Threading.Tasks": {

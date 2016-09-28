@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 
 namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
 {

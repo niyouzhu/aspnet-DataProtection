@@ -18,6 +18,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
     /// </summary>
     public static class AzureDataProtectionBuilderExtensions
     {
+#if NET451
         /// <summary>
         /// Configures the data protection system to protect keys with specified key in Azure KeyVault.
         /// </summary>
@@ -42,6 +43,14 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
             return ProtectKeysWithAzureKeyVault(builder, new KeyVaultClient(callback), keyIdentifier);
         }
 
+        private static async Task<string> GetTokenFromClientCertificate(string authority, string resource, string clientId, X509Certificate2 certificate)
+        {
+            var authContext = new AuthenticationContext(authority);
+            var result = await authContext.AcquireTokenAsync(resource, new ClientAssertionCertificate(clientId, certificate));
+            return result.AccessToken;
+        }
+#endif
+
         /// <summary>
         /// Configures the data protection system to protect keys with specified key in Azure KeyVault.
         /// </summary>
@@ -64,6 +73,14 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
                 (authority, resource, scope) => GetTokenFromClientSecret(authority, resource, clientId, clientSecret);
 
             return ProtectKeysWithAzureKeyVault(builder, new KeyVaultClient(callback), keyIdentifier);
+        }
+
+        private static async Task<string> GetTokenFromClientSecret(string authority, string resource, string clientId, string clientSecret)
+        {
+            var authContext = new AuthenticationContext(authority);
+            var clientCred = new ClientCredential(clientId, clientSecret);
+            var result = await authContext.AcquireTokenAsync(resource, clientCred);
+            return result.AccessToken;
         }
 
         /// <summary>
@@ -92,21 +109,6 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
             builder.Services.AddSingleton<IKeyVaultWrappingClient>(vaultClientWrapper);
             builder.Services.AddSingleton<IXmlEncryptor>(services => new AzureKeyVaultXmlEncryptor(vaultClientWrapper, keyIdentifier));
             return builder;
-        }
-
-        private static async Task<string> GetTokenFromClientSecret(string authority, string resource, string clientId, string clientSecret)
-        {
-            var authContext = new AuthenticationContext(authority);
-            var clientCred = new ClientCredential(clientId, clientSecret);
-            var result = await authContext.AcquireTokenAsync(resource, clientCred);
-            return result.AccessToken;
-        }
-
-        private static async Task<string> GetTokenFromClientCertificate(string authority, string resource, string clientId, X509Certificate2 certificate)
-        {
-            var authContext = new AuthenticationContext(authority);
-            var result = await authContext.AcquireTokenAsync(resource, new ClientAssertionCertificate(clientId, certificate));
-            return result.AccessToken;
         }
     }
 }

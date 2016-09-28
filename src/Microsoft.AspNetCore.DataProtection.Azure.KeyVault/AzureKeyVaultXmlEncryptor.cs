@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault
     internal class AzureKeyVaultXmlEncryptor : IXmlEncryptor
     {
         internal static string DefaultKeyEncryption = JsonWebKeyEncryptionAlgorithm.RSAOAEP;
-        internal static Func<SymmetricAlgorithm> DefaultSymmetricAlgorithmFactory = () => new AesManaged();
+        internal static Func<SymmetricAlgorithm> DefaultSymmetricAlgorithmFactory = () => Aes.Create();
 
         private readonly RandomNumberGenerator _randomNumberGenerator;
         private readonly IKeyVaultWrappingClient _client;

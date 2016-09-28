@@ -6,7 +6,7 @@
     "copyToOutput": "settings.json"
   },
   "dependencies": {
-    "Microsoft.AspNetCore.DataProtection.Azure.KeyVault": "1.1.0-*",
+    "Microsoft.AspNetCore.DataProtection.Azure.KeyVault": "1.0.0-*",
     "Microsoft.Extensions.Configuration": "1.1.0-*",
     "Microsoft.Extensions.Configuration.Json": "1.1.0-*",
     "Microsoft.Extensions.DependencyInjection": "1.1.0-*",

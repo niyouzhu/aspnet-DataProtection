@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.DataProtection.Azure.KeyVault.Test
             Assert.Equal("VfLYL2prdymawfucH3Goso0zkPbQ4/GKqUsj2TRtLzuRd1orCKN6d4KbpD5hDH2gehJj7tqW+sgh+OgymfEkaA==", encryptedElement.Element("value").Value);
             Assert.Equal("AAECAwQFBgcICQoLDA0ODw==", encryptedElement.Element("iv").Value);
             Assert.Equal("Dw4NDAsKCQgHBgUEAwIBAA==", encryptedElement.Element("key").Value);
-            Assert.Equal("Dw4NDAsKCQgHBgUEAwIBAA==", encryptedElement.Element("KeyId").Value);
+            Assert.Equal("KeyId", encryptedElement.Element("kid").Value);
         }
 
         [Fact]

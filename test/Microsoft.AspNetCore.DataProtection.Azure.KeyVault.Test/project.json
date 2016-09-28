@@ -2,13 +2,21 @@
   "dependencies": {
     "dotnet-test-xunit": "2.2.0-*",
     "Microsoft.AspNetCore.DataProtection": "1.1.0-*",
-    "Microsoft.AspNetCore.DataProtection.Azure.KeyVault": "1.1.0-*",
+    "Microsoft.AspNetCore.DataProtection.Azure.KeyVault": "1.0.0-*",
     "Microsoft.AspNetCore.Testing": "1.1.0-*",
     "Microsoft.Extensions.DependencyInjection": "1.1.0-*",
     "xunit": "2.2.0-*",
     "Moq": "4.6.36-*"
   },
   "frameworks": {
+    "netcoreapp1.0": {
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "version": "1.0.0-*",
+          "type": "platform"
+        }
+      }
+    },
     "net451": {
       "frameworkAssemblies": {
         "System.Threading.Tasks": ""

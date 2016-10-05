@@ -4,7 +4,6 @@
 using System;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography;
-using Microsoft.AspNetCore.Cryptography.Cng;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel
 {
@@ -42,36 +41,11 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
         internal override void Validate()
         {
-            var loggerFactory = DataProtectionProviderFactory.GetDefaultLoggerFactory();
-            var sampleSecret = Secret.Random(512 / 8);
-            IAuthenticatedEncryptor encryptor = null;
-
+            var factory = new AuthenticatedEncryptorFactory(this, DataProtectionProviderFactory.GetDefaultLoggerFactory());
+            // Run a sample payload through an encrypt -> decrypt operation to make sure data round-trips properly.
+            var encryptor = factory.CreateAuthenticatedEncryptorInstance(Secret.Random(512 / 8));
             try
             {
-                // Run a sample payload through an encrypt -> decrypt operation to make sure data round-trips properly.
-                if (IsGcmAlgorithm())
-                {
-                    // GCM requires CNG, and CNG is only supported on Windows.
-                    if (!OSVersionUtil.IsWindows())
-                    {
-                        throw new PlatformNotSupportedException(Resources.Platform_WindowsRequiredForGcm);
-                    }
-                    encryptor = new CngGcmAuthenticatedEncryptorFactory(this, loggerFactory).CreateAuthenticatedEncryptorInstance(sampleSecret);
-                }
-                else
-                {
-                    if (OSVersionUtil.IsWindows())
-                    {
-                        // CNG preferred over managed implementations if running on Windows
-                        encryptor = new CngCbcAuthenticatedEncryptorFactory(this, loggerFactory).CreateAuthenticatedEncryptorInstance(sampleSecret);
-                    }
-                    else
-                    {
-                        // Use managed implementations as a fallback
-                        encryptor = new ManagedAuthenticatedEncryptorFactory(this, loggerFactory).CreateAuthenticatedEncryptorInstance(sampleSecret);
-                    }
-                }
-
                 encryptor.PerformSelfTest();
             }
             finally

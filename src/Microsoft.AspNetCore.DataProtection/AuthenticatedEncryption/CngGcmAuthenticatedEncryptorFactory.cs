@@ -12,14 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
 {
-    public class CngGcmAuthenticatedEncryptorFactory : IAuthenticatedEncryptorFactory
+    public sealed class CngGcmAuthenticatedEncryptorFactory : IAuthenticatedEncryptorFactory
     {
         private readonly ILogger _logger;
         private readonly CngGcmAuthenticatedEncryptorConfiguration _configuration;
 
         public CngGcmAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
         {
-            _configuration = configuration as CngGcmAuthenticatedEncryptorConfiguration ?? GetRequiredConfiguration(configuration);
+            _configuration = configuration as CngGcmAuthenticatedEncryptorConfiguration;
             _logger = loggerFactory?.CreateLogger<CngGcmAuthenticatedEncryptorFactory>();
         }
 
@@ -45,31 +45,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
                 keyDerivationKey: new Secret(secret),
                 symmetricAlgorithmHandle: GetSymmetricBlockCipherAlgorithmHandle(),
                 symmetricAlgorithmKeySizeInBytes: (uint)(_configuration.EncryptionAlgorithmKeySize / 8));
-        }
-
-        private CngGcmAuthenticatedEncryptorConfiguration GetRequiredConfiguration(AlgorithmConfiguration configuration)
-        {
-            var authenticatedConfiguration = configuration as AuthenticatedEncryptorConfiguration;
-            if (authenticatedConfiguration == null)
-            {
-                return null;
-            }
-
-            if (authenticatedConfiguration.IsGcmAlgorithm())
-            {
-                // GCM requires CNG, and CNG is only supported on Windows.
-                if (!OSVersionUtil.IsWindows())
-                {
-                    throw new PlatformNotSupportedException(Resources.Platform_WindowsRequiredForGcm);
-                }
-                return new CngGcmAuthenticatedEncryptorConfiguration()
-                {
-                    EncryptionAlgorithm = authenticatedConfiguration.GetBCryptAlgorithmNameFromEncryptionAlgorithm(),
-                    EncryptionAlgorithmKeySize = authenticatedConfiguration.GetAlgorithmKeySizeInBits()
-                };
-            }
-
-            return null;
         }
 
         private BCryptAlgorithmHandle GetSymmetricBlockCipherAlgorithmHandle()

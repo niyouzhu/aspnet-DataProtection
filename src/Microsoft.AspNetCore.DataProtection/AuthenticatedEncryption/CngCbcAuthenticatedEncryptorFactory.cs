@@ -12,14 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
 {
-    public class CngCbcAuthenticatedEncryptorFactory : IAuthenticatedEncryptorFactory
+    public sealed class CngCbcAuthenticatedEncryptorFactory : IAuthenticatedEncryptorFactory
     {
         private readonly ILogger _logger;
         private readonly CngCbcAuthenticatedEncryptorConfiguration _configuration;
 
         public CngCbcAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
         {
-            _configuration =  configuration as CngCbcAuthenticatedEncryptorConfiguration ?? GetRequiredConfiguration(configuration);
+            _configuration =  configuration as CngCbcAuthenticatedEncryptorConfiguration;
             _logger = loggerFactory?.CreateLogger<CngCbcAuthenticatedEncryptorFactory>();
         }
 
@@ -46,27 +46,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
                 symmetricAlgorithmHandle: GetSymmetricBlockCipherAlgorithmHandle(),
                 symmetricAlgorithmKeySizeInBytes: (uint)(_configuration.EncryptionAlgorithmKeySize / 8),
                 hmacAlgorithmHandle: GetHmacAlgorithmHandle());
-        }
-
-        private CngCbcAuthenticatedEncryptorConfiguration GetRequiredConfiguration(AlgorithmConfiguration configuration)
-        {
-            var authenticatedConfiguration = configuration as AuthenticatedEncryptorConfiguration;
-            if (authenticatedConfiguration == null)
-            {
-                return null;
-            }
-
-            if (!authenticatedConfiguration.IsGcmAlgorithm() && OSVersionUtil.IsWindows())
-            {
-                return new CngCbcAuthenticatedEncryptorConfiguration()
-                {
-                    EncryptionAlgorithm = authenticatedConfiguration.GetBCryptAlgorithmNameFromEncryptionAlgorithm(),
-                    EncryptionAlgorithmKeySize = authenticatedConfiguration.GetAlgorithmKeySizeInBits(),
-                    HashAlgorithm = authenticatedConfiguration.GetBCryptAlgorithmNameFromValidationAlgorithm()
-                };
-            }
-
-            return null;
         }
 
         private BCryptAlgorithmHandle GetHmacAlgorithmHandle()

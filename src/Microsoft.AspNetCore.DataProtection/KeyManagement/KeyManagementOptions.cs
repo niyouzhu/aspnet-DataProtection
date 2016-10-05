@@ -29,8 +29,21 @@ namespace Microsoft.AspNetCore.DataProtection.KeyManagement
         {
             if (other != null)
             {
-                this.AutoGenerateKeys = other.AutoGenerateKeys;
-                this._newKeyLifetime = other._newKeyLifetime;
+                AutoGenerateKeys = other.AutoGenerateKeys;
+                _newKeyLifetime = other._newKeyLifetime;
+                XmlEncryptor = other.XmlEncryptor;
+                XmlRepository = other.XmlRepository;
+                AuthenticatedEncryptorConfiguration = other.AuthenticatedEncryptorConfiguration;
+
+                foreach (var keyEscrowSink in other.KeyEscrowSinks)
+                {
+                    KeyEscrowSinks.Add(keyEscrowSink);
+                }
+
+                foreach (var encryptorFactory in other.AuthenticatedEncryptorFactories)
+                {
+                    AuthenticatedEncryptorFactories.Add(encryptorFactory);
+                }
             }
         }
 

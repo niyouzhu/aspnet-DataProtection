@@ -67,6 +67,7 @@ namespace Microsoft.AspNetCore.DataProtection.Internal
             options.AuthenticatedEncryptorFactories.Add(new CngGcmAuthenticatedEncryptorFactory(options.AuthenticatedEncryptorConfiguration, _loggerFactory));
             options.AuthenticatedEncryptorFactories.Add(new CngCbcAuthenticatedEncryptorFactory(options.AuthenticatedEncryptorConfiguration, _loggerFactory));
             options.AuthenticatedEncryptorFactories.Add(new ManagedAuthenticatedEncryptorFactory(options.AuthenticatedEncryptorConfiguration, _loggerFactory));
+            options.AuthenticatedEncryptorFactories.Add(new AuthenticatedEncryptorFactory(options.AuthenticatedEncryptorConfiguration, _loggerFactory));
         }
 
         public static KeyValuePair<IXmlRepository, IXmlEncryptor> GetKeyRepositoryEncryptorPair(ILoggerFactory loggerFactory)

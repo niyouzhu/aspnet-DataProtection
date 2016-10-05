@@ -12,14 +12,14 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
 {
-    public class ManagedAuthenticatedEncryptorFactory : IAuthenticatedEncryptorFactory
+    public sealed class ManagedAuthenticatedEncryptorFactory : IAuthenticatedEncryptorFactory
     {
         private readonly ILogger _logger;
         private readonly ManagedAuthenticatedEncryptorConfiguration _configuration;
 
         public ManagedAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
         {
-            _configuration = configuration as ManagedAuthenticatedEncryptorConfiguration ?? GetRequiredConfiguration(configuration);
+            _configuration = configuration as ManagedAuthenticatedEncryptorConfiguration;
             _logger = loggerFactory?.CreateLogger<ManagedAuthenticatedEncryptorFactory>();
         }
 
@@ -46,27 +46,6 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
                 symmetricAlgorithmFactory: GetSymmetricBlockCipherAlgorithmFactory(),
                 symmetricAlgorithmKeySizeInBytes: _configuration.EncryptionAlgorithmKeySize / 8,
                 validationAlgorithmFactory: GetKeyedHashAlgorithmFactory());
-        }
-
-        private ManagedAuthenticatedEncryptorConfiguration GetRequiredConfiguration(AlgorithmConfiguration configuration)
-        {
-            var authenticatedConfiguration = configuration as AuthenticatedEncryptorConfiguration;
-            if (authenticatedConfiguration == null)
-            {
-                return null;
-            }
-
-            if (!authenticatedConfiguration.IsGcmAlgorithm() && !OSVersionUtil.IsWindows())
-            {
-                return new ManagedAuthenticatedEncryptorConfiguration()
-                {
-                    EncryptionAlgorithmType = authenticatedConfiguration.GetManagedTypeFromEncryptionAlgorithm(),
-                    EncryptionAlgorithmKeySize = authenticatedConfiguration.GetAlgorithmKeySizeInBits(),
-                    ValidationAlgorithmType = authenticatedConfiguration.GetManagedTypeFromValidationAlgorithm()
-                };
-            }
-
-            return null;
         }
 
         private Func<KeyedHashAlgorithm> GetKeyedHashAlgorithmFactory()

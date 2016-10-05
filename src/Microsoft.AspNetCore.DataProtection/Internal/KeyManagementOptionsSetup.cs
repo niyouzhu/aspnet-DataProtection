@@ -64,10 +64,10 @@ namespace Microsoft.AspNetCore.DataProtection.Internal
             options.XmlRepository = keyRepositoryEncryptorPair.Key;
             options.XmlEncryptor = keyRepositoryEncryptorPair.Value;
 
-            options.AuthenticatedEncryptorFactories.Add(new CngGcmAuthenticatedEncryptorFactory(options.AuthenticatedEncryptorConfiguration, _loggerFactory));
-            options.AuthenticatedEncryptorFactories.Add(new CngCbcAuthenticatedEncryptorFactory(options.AuthenticatedEncryptorConfiguration, _loggerFactory));
-            options.AuthenticatedEncryptorFactories.Add(new ManagedAuthenticatedEncryptorFactory(options.AuthenticatedEncryptorConfiguration, _loggerFactory));
-            options.AuthenticatedEncryptorFactories.Add(new AuthenticatedEncryptorFactory(options.AuthenticatedEncryptorConfiguration, _loggerFactory));
+            options.AuthenticatedEncryptorFactories.Add(new CngGcmAuthenticatedEncryptorFactory(_loggerFactory));
+            options.AuthenticatedEncryptorFactories.Add(new CngCbcAuthenticatedEncryptorFactory(_loggerFactory));
+            options.AuthenticatedEncryptorFactories.Add(new ManagedAuthenticatedEncryptorFactory(_loggerFactory));
+            options.AuthenticatedEncryptorFactories.Add(new AuthenticatedEncryptorFactory(_loggerFactory));
         }
 
         public static KeyValuePair<IXmlRepository, IXmlEncryptor> GetKeyRepositoryEncryptorPair(ILoggerFactory loggerFactory)

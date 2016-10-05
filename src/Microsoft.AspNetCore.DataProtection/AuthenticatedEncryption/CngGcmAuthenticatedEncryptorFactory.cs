@@ -15,11 +15,9 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
     public sealed class CngGcmAuthenticatedEncryptorFactory : IAuthenticatedEncryptorFactory
     {
         private readonly ILogger _logger;
-        private readonly CngGcmAuthenticatedEncryptorConfiguration _configuration;
 
-        public CngGcmAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
+        public CngGcmAuthenticatedEncryptorFactory(ILoggerFactory loggerFactory)
         {
-            _configuration = configuration as CngGcmAuthenticatedEncryptorConfiguration;
             _logger = loggerFactory?.CreateLogger<CngGcmAuthenticatedEncryptorFactory>();
         }
 
@@ -31,56 +29,58 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
                 return null;
             }
 
-            return CreateAuthenticatedEncryptorInstance(descriptor.MasterKey);
+            return CreateAuthenticatedEncryptorInstance(descriptor.MasterKey, descriptor.Settings);
         }
 
-        internal GcmAuthenticatedEncryptor CreateAuthenticatedEncryptorInstance(ISecret secret)
+        internal GcmAuthenticatedEncryptor CreateAuthenticatedEncryptorInstance(
+            ISecret secret,
+            CngGcmAuthenticatedEncryptorConfiguration configuration)
         {
-            if (_configuration == null)
+            if (configuration == null)
             {
                 return null;
             }
 
             return new GcmAuthenticatedEncryptor(
                 keyDerivationKey: new Secret(secret),
-                symmetricAlgorithmHandle: GetSymmetricBlockCipherAlgorithmHandle(),
-                symmetricAlgorithmKeySizeInBytes: (uint)(_configuration.EncryptionAlgorithmKeySize / 8));
+                symmetricAlgorithmHandle: GetSymmetricBlockCipherAlgorithmHandle(configuration),
+                symmetricAlgorithmKeySizeInBytes: (uint)(configuration.EncryptionAlgorithmKeySize / 8));
         }
 
-        private BCryptAlgorithmHandle GetSymmetricBlockCipherAlgorithmHandle()
+        private BCryptAlgorithmHandle GetSymmetricBlockCipherAlgorithmHandle(CngGcmAuthenticatedEncryptorConfiguration configuration)
         {
             // basic argument checking
-            if (String.IsNullOrEmpty(_configuration.EncryptionAlgorithm))
+            if (String.IsNullOrEmpty(configuration.EncryptionAlgorithm))
             {
                 throw Error.Common_PropertyCannotBeNullOrEmpty(nameof(EncryptionAlgorithm));
             }
-            if (_configuration.EncryptionAlgorithmKeySize < 0)
+            if (configuration.EncryptionAlgorithmKeySize < 0)
             {
-                throw Error.Common_PropertyMustBeNonNegative(nameof(_configuration.EncryptionAlgorithmKeySize));
+                throw Error.Common_PropertyMustBeNonNegative(nameof(configuration.EncryptionAlgorithmKeySize));
             }
 
             BCryptAlgorithmHandle algorithmHandle = null;
 
-            _logger?.OpeningCNGAlgorithmFromProviderWithChainingModeGCM(_configuration.EncryptionAlgorithm, _configuration.EncryptionAlgorithmProvider);
+            _logger?.OpeningCNGAlgorithmFromProviderWithChainingModeGCM(configuration.EncryptionAlgorithm, configuration.EncryptionAlgorithmProvider);
             // Special-case cached providers
-            if (_configuration.EncryptionAlgorithmProvider == null)
+            if (configuration.EncryptionAlgorithmProvider == null)
             {
-                if (_configuration.EncryptionAlgorithm == Constants.BCRYPT_AES_ALGORITHM) { algorithmHandle = CachedAlgorithmHandles.AES_GCM; }
+                if (configuration.EncryptionAlgorithm == Constants.BCRYPT_AES_ALGORITHM) { algorithmHandle = CachedAlgorithmHandles.AES_GCM; }
             }
 
             // Look up the provider dynamically if we couldn't fetch a cached instance
             if (algorithmHandle == null)
             {
-                algorithmHandle = BCryptAlgorithmHandle.OpenAlgorithmHandle(_configuration.EncryptionAlgorithm, _configuration.EncryptionAlgorithmProvider);
+                algorithmHandle = BCryptAlgorithmHandle.OpenAlgorithmHandle(configuration.EncryptionAlgorithm, configuration.EncryptionAlgorithmProvider);
                 algorithmHandle.SetChainingMode(Constants.BCRYPT_CHAIN_MODE_GCM);
             }
 
             // make sure we're using a block cipher with an appropriate key size & block size
             CryptoUtil.Assert(algorithmHandle.GetCipherBlockLength() == 128 / 8, "GCM requires a block cipher algorithm with a 128-bit block size.");
-            AlgorithmAssert.IsAllowableSymmetricAlgorithmKeySize(checked((uint)_configuration.EncryptionAlgorithmKeySize));
+            AlgorithmAssert.IsAllowableSymmetricAlgorithmKeySize(checked((uint)configuration.EncryptionAlgorithmKeySize));
 
             // make sure the provided key length is valid
-            algorithmHandle.GetSupportedKeyLengths().EnsureValidKeyLength((uint)_configuration.EncryptionAlgorithmKeySize);
+            algorithmHandle.GetSupportedKeyLengths().EnsureValidKeyLength((uint)configuration.EncryptionAlgorithmKeySize);
 
             // all good!
             return algorithmHandle;

@@ -41,9 +41,9 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.Configurat
 
         internal override void Validate()
         {
-            var factory = new AuthenticatedEncryptorFactory(this, DataProtectionProviderFactory.GetDefaultLoggerFactory());
+            var factory = new AuthenticatedEncryptorFactory(DataProtectionProviderFactory.GetDefaultLoggerFactory());
             // Run a sample payload through an encrypt -> decrypt operation to make sure data round-trips properly.
-            var encryptor = factory.CreateAuthenticatedEncryptorInstance(Secret.Random(512 / 8));
+            var encryptor = factory.CreateAuthenticatedEncryptorInstance(Secret.Random(512 / 8), this);
             try
             {
                 encryptor.PerformSelfTest();

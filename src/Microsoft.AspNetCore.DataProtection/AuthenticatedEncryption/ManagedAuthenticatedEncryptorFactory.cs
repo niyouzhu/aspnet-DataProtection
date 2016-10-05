@@ -8,18 +8,15 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationM
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.Managed;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
 {
     public sealed class ManagedAuthenticatedEncryptorFactory : IAuthenticatedEncryptorFactory
     {
         private readonly ILogger _logger;
-        private readonly ManagedAuthenticatedEncryptorConfiguration _configuration;
 
-        public ManagedAuthenticatedEncryptorFactory(AlgorithmConfiguration configuration, ILoggerFactory loggerFactory)
+        public ManagedAuthenticatedEncryptorFactory(ILoggerFactory loggerFactory)
         {
-            _configuration = configuration as ManagedAuthenticatedEncryptorConfiguration;
             _logger = loggerFactory?.CreateLogger<ManagedAuthenticatedEncryptorFactory>();
         }
 
@@ -31,62 +28,64 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
                 return null;
             }
 
-            return CreateAuthenticatedEncryptorInstance(descriptor.MasterKey);
+            return CreateAuthenticatedEncryptorInstance(descriptor.MasterKey, descriptor.Settings);
         }
 
-        internal ManagedAuthenticatedEncryptor CreateAuthenticatedEncryptorInstance(ISecret secret)
+        internal ManagedAuthenticatedEncryptor CreateAuthenticatedEncryptorInstance(
+            ISecret secret,
+            ManagedAuthenticatedEncryptorConfiguration configuration)
         {
-            if (_configuration == null)
+            if (configuration == null)
             {
                 return null;
             }
 
             return new ManagedAuthenticatedEncryptor(
                 keyDerivationKey: new Secret(secret),
-                symmetricAlgorithmFactory: GetSymmetricBlockCipherAlgorithmFactory(),
-                symmetricAlgorithmKeySizeInBytes: _configuration.EncryptionAlgorithmKeySize / 8,
-                validationAlgorithmFactory: GetKeyedHashAlgorithmFactory());
+                symmetricAlgorithmFactory: GetSymmetricBlockCipherAlgorithmFactory(configuration),
+                symmetricAlgorithmKeySizeInBytes: configuration.EncryptionAlgorithmKeySize / 8,
+                validationAlgorithmFactory: GetKeyedHashAlgorithmFactory(configuration));
         }
 
-        private Func<KeyedHashAlgorithm> GetKeyedHashAlgorithmFactory()
+        private Func<KeyedHashAlgorithm> GetKeyedHashAlgorithmFactory(ManagedAuthenticatedEncryptorConfiguration configuration)
         {
             // basic argument checking
-            if (_configuration.ValidationAlgorithmType == null)
+            if (configuration.ValidationAlgorithmType == null)
             {
-                throw Error.Common_PropertyCannotBeNullOrEmpty(nameof(_configuration.ValidationAlgorithmType));
+                throw Error.Common_PropertyCannotBeNullOrEmpty(nameof(configuration.ValidationAlgorithmType));
             }
 
-            _logger?.UsingManagedKeyedHashAlgorithm(_configuration.ValidationAlgorithmType.FullName);
-            if (_configuration.ValidationAlgorithmType == typeof(HMACSHA256))
+            _logger?.UsingManagedKeyedHashAlgorithm(configuration.ValidationAlgorithmType.FullName);
+            if (configuration.ValidationAlgorithmType == typeof(HMACSHA256))
             {
                 return () => new HMACSHA256();
             }
-            else if (_configuration.ValidationAlgorithmType == typeof(HMACSHA512))
+            else if (configuration.ValidationAlgorithmType == typeof(HMACSHA512))
             {
                 return () => new HMACSHA512();
             }
             else
             {
-                return AlgorithmActivator.CreateFactory<KeyedHashAlgorithm>(_configuration.ValidationAlgorithmType);
+                return AlgorithmActivator.CreateFactory<KeyedHashAlgorithm>(configuration.ValidationAlgorithmType);
             }
         }
 
-        private Func<SymmetricAlgorithm> GetSymmetricBlockCipherAlgorithmFactory()
+        private Func<SymmetricAlgorithm> GetSymmetricBlockCipherAlgorithmFactory(ManagedAuthenticatedEncryptorConfiguration configuration)
         {
             // basic argument checking
-            if (_configuration.EncryptionAlgorithmType == null)
+            if (configuration.EncryptionAlgorithmType == null)
             {
-                throw Error.Common_PropertyCannotBeNullOrEmpty(nameof(_configuration.EncryptionAlgorithmType));
+                throw Error.Common_PropertyCannotBeNullOrEmpty(nameof(configuration.EncryptionAlgorithmType));
             }
-            typeof(SymmetricAlgorithm).AssertIsAssignableFrom(_configuration.EncryptionAlgorithmType);
-            if (_configuration.EncryptionAlgorithmKeySize < 0)
+            typeof(SymmetricAlgorithm).AssertIsAssignableFrom(configuration.EncryptionAlgorithmType);
+            if (configuration.EncryptionAlgorithmKeySize < 0)
             {
-                throw Error.Common_PropertyMustBeNonNegative(nameof(_configuration.EncryptionAlgorithmKeySize));
+                throw Error.Common_PropertyMustBeNonNegative(nameof(configuration.EncryptionAlgorithmKeySize));
             }
 
-            _logger?.UsingManagedSymmetricAlgorithm(_configuration.EncryptionAlgorithmType.FullName);
+            _logger?.UsingManagedSymmetricAlgorithm(configuration.EncryptionAlgorithmType.FullName);
 
-            if (_configuration.EncryptionAlgorithmType == typeof(Aes))
+            if (configuration.EncryptionAlgorithmType == typeof(Aes))
             {
                 Func<Aes> factory = null;
 #if !NETSTANDARD1_3
@@ -100,7 +99,7 @@ namespace Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption
             }
             else
             {
-                return AlgorithmActivator.CreateFactory<SymmetricAlgorithm>(_configuration.EncryptionAlgorithmType);
+                return AlgorithmActivator.CreateFactory<SymmetricAlgorithm>(configuration.EncryptionAlgorithmType);
             }
         }
 

@@ -4,29 +4,27 @@
 using System;
 using System.IO;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
-namespace NonDISample
+namespace CustomEncryptorSample
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-            // get the path to %LOCALAPPDATA%\myapp-keys
-            var destFolder = Path.Combine(
-                Environment.GetEnvironmentVariable("LOCALAPPDATA"),
-                "myapp-keys");
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddLogging();
+            serviceCollection.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(@"c:\temp-keys"))
+                .UseXmlEncryptor(s => new CustomXmlEncryptor(s));
 
-            // instantiate the data protection system at this folder
-            var dataProtectionProvider = DataProtectionProvider.Create(
-                new DirectoryInfo(destFolder),
-                configuration =>
-                {
-                    configuration.SetApplicationName("my app name");
-                    configuration.ProtectKeysWithDpapi();
-                });
+            var services = serviceCollection.BuildServiceProvider();
+            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            loggerFactory.AddConsole();
 
-            var protector = dataProtectionProvider.CreateProtector("Program.No-DI");
-
+            var protector = services.GetDataProtector("SamplePurpose");
+            
             // protect the payload
             var protectedPayload = protector.Protect("Hello World!");
             Console.WriteLine($"Protect returned: {protectedPayload}");
